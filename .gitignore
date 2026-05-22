@@ -1,0 +1,72 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.log
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# --- FastAPI / Uvicorn ---
+*.db
+*.sqlite3
+
+# --- Jinja2 cache ---
+*.jinja2-cache
+.jinja2_cache/
+
+# --- Static build artifacts ---
+staticfiles/
+static/build/
+static/dist/
+
+# --- Uploads / generated files ---
+uploads/
+output/
+compressed/
+*.zip
+
+# --- Environment variables ---
+.env
+.env.*
+!.env.example
+
+# --- Docker ---
+# Ignore everything Docker builds locally
+docker-compose.override.yml
+docker-data/
+postgres_data/
+*.pid
+
+# Docker build cache
+**/.dockerignore
+**/Dockerfile~
+**/docker-compose.yml~
+
+# --- IDE / Editors ---
+# VSCode
+.vscode/
+.history/
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Tests ---
+.coverage
+htmlcov/
+pytest_cache/

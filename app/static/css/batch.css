@@ -1,0 +1,16 @@
+/* FILE: static/css/batch.css */
+body {
+    font-family: Arial;
+    background: #111;
+    color: #eee;
+    padding: 40px;
+}
+
+input, button {
+    padding: 10px;
+    margin: 10px 0;
+}
+
+a {
+    color: #4af;
+}
