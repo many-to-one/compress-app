@@ -1,0 +1,139 @@
+.info-box {
+    width: 90%;
+    max-width: 900px;
+    margin: 20px auto 30px;
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 12px var(--neon);
+}
+
+.info-box h2 {
+    margin-top: 0;
+    font-size: 20px;
+    text-shadow: 0 0 8px var(--neon2);
+}
+
+.info-box ul {
+    margin: 10px 0 0;
+    padding-left: 20px;
+}
+
+.info-box li {
+    margin-bottom: 6px;
+    opacity: 0.9;
+}
+
+
+.faq-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 22px 24px;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    box-shadow: 0 0 18px rgba(0, 255, 200, 0.25);
+}
+
+.faq-title {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 24px;
+    text-shadow: 0 0 10px var(--neon);
+}
+
+.faq-item {
+    margin-bottom: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-item input {
+    display: none;
+}
+
+.faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text);
+    gap: 12px;
+    transition: color 0.25s ease, transform 0.2s ease;
+}
+
+.faq-question:hover {
+    color: var(--neon2);
+    transform: translateY(-1px);
+}
+
+.faq-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 255, 200, 0.6);
+    box-shadow: 0 0 8px rgba(0, 255, 200, 0.4);
+    color: var(--neon);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.faq-icon svg {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.icon-minus {
+    opacity: 0;
+    transform: scale(0.6);
+}
+
+.faq-item input:checked + .faq-question .icon-plus {
+    opacity: 0;
+    transform: scale(0.6);
+}
+
+.faq-item input:checked + .faq-question .icon-minus {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+        max-height 0.35s ease,
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    padding-right: 4px;
+}
+
+.faq-item input:checked ~ .faq-answer {
+    max-height: 200px;
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 6px;
+}
+
+.faq-answer p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+

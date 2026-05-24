@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login</title>
+
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+
+<div class="auth-container">
+
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <form class="auth-card" id="loginForm" method="POST" action="/auth/login">
+
+        <div class="badge">
+            Login Page
+        </div>
+
+        <h1>Welcome Back</h1>
+
+        <p>
+            Login and generate your JWT access token.
+        </p>
+        
+            <div class="input-group">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="hello@example.com"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="••••••••"
+                    required
+                >
+            </div>
+
+            <button type="submit">Login</button>
+
+
+        <div class="result" id="result"></div>
+
+        <div class="bottom-text">
+            <a href="/forgot_password">Forgot password</a>
+        </div>
+
+        <div class="bottom-text">
+            No account?
+            <a href="/register_page">Register</a>
+        </div>
+
+    </form>
+
+</div>
+
+<script src="/static/js/login.js"></script>
+
+</body>
+</html>

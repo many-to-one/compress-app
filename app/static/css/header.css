@@ -1,0 +1,305 @@
+.auth-header {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(0, 255, 200, 0.15);
+
+    /* smooth sticky shadow */
+    box-shadow: 0 4px 20px rgba(0, 255, 200, 0.05);
+}
+
+.auth-logo span {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #00ffc8;
+    text-shadow: 0 0 8px #00ffc8;
+    font-family: "Inter", sans-serif;
+}
+
+.auth-nav {
+    position: relative;
+    display: flex;
+    gap: 30px;
+}
+
+.auth-tab {
+    background: none;
+    border: none;
+    color: #bfffea;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: color 0.2s ease;
+}
+
+.auth-tab:hover {
+    color: #00ffc8;
+}
+
+.auth-tab.active {
+    color: #00ffc8;
+    text-shadow: 0 0 6px #00ffc8;
+}
+
+.auth-underline {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    height: 2px;
+    width: 60px;
+    background: #00ffc8;
+    box-shadow: 0 0 8px #00ffc8;
+    border-radius: 2px;
+    transition: transform 0.25s ease;
+}
+
+
+
+/* ========================= */
+/*        SWITCH BASE        */
+/* ========================= */
+
+.neon-switch{
+    position:relative;
+    width:78px;
+    height:38px;
+    display:inline-block;
+    cursor:pointer;
+}
+
+.neon-switch input{
+    display:none;
+}
+
+.track{
+    position:absolute;
+    inset:0;
+    border-radius:50px;
+
+    background:rgba(0,255,200,0.08);
+
+    border:1px solid rgba(0,255,200,0.35);
+
+    box-shadow:
+        inset 0 0 10px rgba(0,255,200,0.25),
+        0 0 12px rgba(0,255,200,0.25);
+
+    backdrop-filter:blur(10px);
+
+    transition:.35s;
+}
+
+.thumb{
+    position:absolute;
+    width:30px;
+    height:30px;
+    left:4px;
+    top:4px;
+
+    border-radius:50%;
+
+    background:#07111f;
+
+    border:1px solid rgba(0,255,200,0.5);
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:
+        0 0 12px rgba(0,255,200,0.8),
+        inset 0 0 10px rgba(0,255,200,0.3);
+
+    transition:.35s cubic-bezier(.7,-0.4,.3,1.4);
+}
+
+.neon-switch input:checked + .track .thumb{
+    transform:translateX(40px);
+}
+
+/* ========================= */
+/*          ICONS            */
+/* ========================= */
+
+.icon{
+    position:absolute;
+    width:18px;
+    height:18px;
+    opacity:0;
+    transition:.25s;
+}
+
+/* ========================= */
+/*            SUN            */
+/* ========================= */
+
+.icon-sun{
+    position:absolute;
+    width:8px;
+    height:8px;
+
+    border:2px solid #00ffc8;
+    border-radius:50%;
+
+    box-shadow:
+        0 0 8px #00ffc8,
+        inset 0 0 4px #00ffc8;
+}
+
+/* promienie */
+
+.icon-sun::before,
+.icon-sun::after{
+    content:"";
+    position:absolute;
+    inset:-7px;
+    border-radius:50%;
+}
+
+/* 4 główne */
+
+.icon-sun::before{
+    background:
+        linear-gradient(#00ffc8,#00ffc8) center top / 2px 6px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) center bottom / 2px 6px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) left center / 6px 2px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) right center / 6px 2px no-repeat;
+
+    filter:drop-shadow(0 0 4px #00ffc8);
+}
+
+/* 4 diagonalne */
+
+.icon-sun::after{
+    background:
+        linear-gradient(#00ffc8,#00ffc8) center top / 2px 4px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) center bottom / 2px 4px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) left center / 4px 2px no-repeat,
+        linear-gradient(#00ffc8,#00ffc8) right center / 4px 2px no-repeat;
+
+    transform:rotate(45deg);
+
+    filter:drop-shadow(0 0 4px #00ffc8);
+}
+
+/* ========================= */
+/*           MOON            */
+/* ========================= */
+
+.icon-moon{
+    border-radius:50%;
+    background:#00ffc8;
+    box-shadow:0 0 8px #00ffc8;
+}
+
+.icon-moon::after{
+    content:"";
+    position:absolute;
+    width:16px;
+    height:16px;
+    border-radius:50%;
+    background:#07111f;
+    top:-1px;
+    left:6px;
+}
+
+/* ========================= */
+/*        HAMBURGER          */
+/* ========================= */
+
+.icon-lines::before,
+.icon-lines::after,
+.icon-lines span{
+    content:"";
+    position:absolute;
+    left:0;
+    width:18px;
+    height:2px;
+    border-radius:10px;
+
+    background:#00ffc8;
+
+    box-shadow:0 0 6px #00ffc8;
+}
+
+.icon-lines::before{
+    top:2px;
+}
+
+.icon-lines span{
+    top:8px;
+}
+
+.icon-lines::after{
+    top:14px;
+}
+
+/* compact */
+
+.icon-lines-compact::before,
+.icon-lines-compact::after,
+.icon-lines-compact span{
+    content:"";
+    position:absolute;
+    left:2px;
+    width:14px;
+    height:2px;
+    border-radius:10px;
+
+    background:#00ffc8;
+
+    box-shadow:0 0 6px #00ffc8;
+}
+
+.icon-lines-compact::before{
+    top:4px;
+}
+
+.icon-lines-compact span{
+    top:8px;
+}
+
+.icon-lines-compact::after{
+    top:12px;
+}
+
+/* ========================= */
+/*      ACTIVE ICONS         */
+/* ========================= */
+
+#themeSwitch:not(:checked) + .track .icon-sun{
+    opacity:1;
+}
+
+#themeSwitch:checked + .track .icon-moon{
+    opacity:1;
+}
+
+#compactSwitch:not(:checked) + .track .icon-lines{
+    opacity:1;
+}
+
+#compactSwitch:checked + .track .icon-lines-compact{
+    opacity:1;
+}
+
+/* ========================= */
+/*        ACTIVE STATE       */
+/* ========================= */
+
+.neon-switch input:checked + .track{
+    background:rgba(0,255,200,0.16);
+
+    box-shadow:
+        inset 0 0 14px rgba(0,255,200,0.45),
+        0 0 20px rgba(0,255,200,0.4);
+}

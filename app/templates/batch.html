@@ -1,20 +1,420 @@
-<!-- FILE: templates/batch.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
+    <meta charset="UTF-8">
     <title>Batch Compression</title>
     <link rel="stylesheet" href="/static/css/batch.css">
+    <link rel="stylesheet" href="/static/css/info.css">
+    <link rel="stylesheet" href="/static/css/slimage.css">
+    <link rel="stylesheet" href="/static/css/header.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
-<body>
-    <h1>Batch Image Compression</h1>
 
-    <form id="uploadForm">
-        <input type="file" id="files" name="files" multiple>
-        <button type="submit">Start Compression</button>
+<body>
+
+<header class="auth-header">
+
+    <div class="auth-logo">
+        <span>SLIMAGE</span>
+    </div>
+
+    <nav class="auth-nav">
+
+        <label class="neon-switch">
+            <input type="checkbox" id="themeSwitch">
+
+            <span class="track">
+                <span class="thumb">
+
+                    <span class="icon icon-sun"></span>
+
+                    <span class="icon icon-moon"></span>
+
+                </span>
+            </span>
+        </label>
+
+        <!-- COMPACT -->
+
+        <label class="neon-switch">
+            <input type="checkbox" id="compactSwitch">
+
+            <span class="track">
+                <span class="thumb">
+
+                    <span class="icon icon-lines">
+                        <span></span>
+                    </span>
+
+                    <span class="icon icon-lines-compact">
+                        <span></span>
+                    </span>
+
+                </span>
+            </span>
+        </label>
+
+        {% if is_authenticated %}
+
+            <button class="auth-tab" onclick="logout()">
+                Logout
+            </button>
+
+            {% else %}
+
+            <a href="/login_page" class="auth-tab active">
+                Login
+            </a>
+
+            <a href="/register_page" class="auth-tab">
+                Register
+            </a>
+
+        {% endif %}
+
+    </nav>
+</header>
+
+
+<h1>Batch Image Compression</h1>
+
+<div class="container">
+
+    <form id="uploadForm" >
+        <div id="dropZone" class="drop-zone full-zone row-center">
+            <!-- <p>Upuść pliki tutaj lub</p> -->
+            <label class="file-btn">
+                Wybierz pliki
+                <input type="file" id="files" name="files" multiple hidden>
+            </label>
+            <button class="btn" type="submit">Start Compression</button>
+            <button class="btn alt" id="convertWebpBtn" type="button">Convert to WebP</button>
+        </div>
     </form>
+
 
     <div id="status"></div>
 
-    <script src="/static/js/batch.js"></script>
+    <div id="fileProgressContainer"></div>
+
+</div>
+
+<div class="info-box">
+    <h2>Why reduce image size?</h2>
+    <ul>
+        <li><strong>Faster websites</strong> — smaller images load instantly and improve SEO.</li>
+        <li><strong>Less storage usage</strong> — save space on servers, clouds and devices.</li>
+        <li><strong>Better performance</strong> — apps and galleries open faster.</li>
+        <li><strong>Quicker sharing</strong> — upload and send images much faster.</li>
+        <li><strong>Lower bandwidth</strong> — ideal for mobile users and slow networks.</li>
+    </ul>
+</div>
+
+
+<div class="faq-container">
+    <h2 class="faq-title">FAQ — Image Compression & WebP</h2>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq1">
+        <label class="faq-question" for="faq1">
+            <span>What does this tool do?</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>This tool compresses and optionally converts your images to modern formats like WebP to reduce file size while keeping visual quality.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq2">
+        <label class="faq-question" for="faq2">
+            <span>Does it support WebP conversion?</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>Yes. You can compress images in their original format or convert them to WebP for even smaller file sizes.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq3">
+        <label class="faq-question" for="faq3">
+            <span>Why should I compress images?</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>Smaller images mean faster websites, better UX, improved SEO, lower bandwidth usage and smoother galleries or apps.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq4">
+        <label class="faq-question" for="faq4">
+            <span>Is my data private?</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>All processing happens on your own server. No third‑party services receive your files, keeping everything private.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq5">
+        <label class="faq-question" for="faq5">
+            <span>What is WebP and when should I use it?</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>WebP is a modern image format that offers much better compression than JPG or PNG. Use it for web, apps and any place where performance matters.</p>
+        </div>
+    </div>
+
+    <div class="faq-item">
+        <input type="checkbox" id="faq6">
+        <label class="faq-question" for="faq6">
+            <span>Terms of Use</span>
+            <span class="faq-icon">
+                <svg viewBox="0 0 24 24" class="icon-plus">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="icon-minus">
+                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+        </label>
+        <div class="faq-answer">
+            <p>
+                <strong>EN — Terms of Use (summary)</strong><br>
+                1. <strong>Uploaded Content</strong><br>
+                You keep full ownership of all images and files you upload to Slimage. By using the Service, you grant us a temporary, non‑exclusive permission to process, compress, convert, and store your files only for the purpose of delivering the Service.<br><br>
+                Files are stored only for the time required to process them and are automatically deleted. We do not claim any rights to your content beyond what is necessary to operate Slimage.<br><br>
+
+                2. <strong>Usage Rules</strong><br>
+                You agree to use Slimage legally and responsibly. You may not upload harmful, illegal, or malicious files, nor attempt to disrupt or overload the Service.<br><br>
+
+                3. <strong>Privacy & Data Handling</strong><br>
+                We collect only the minimum data required to operate Slimage. Technical logs, IP address, may be stored to prevent abuse. Uploaded images are not shared with third parties except essential service providers (e.g. hosting).<br><br>
+
+                4. <strong>Liability</strong><br>
+                Slimage is provided “as is”. We are not responsible for data loss, service interruptions, or indirect damages. Your use of the Service is at your own risk.<br><br>
+
+                5. <strong>Changes</strong><br>
+                We may update these Terms from time to time. Continued use of Slimage means you accept our Terms.
+            </p>
+                <br><br>
+            <p>
+                <strong>PL — Warunki korzystania (skrót)</strong><br>
+                1. <strong>Przesyłane pliki</strong><br>
+                Zachowujesz pełne prawa do wszystkich obrazów i plików przesyłanych do Slimage. Korzystając z Usługi, udzielasz nam tymczasowej, niewyłącznej zgody na przetwarzanie, kompresję, konwersję i przechowywanie plików wyłącznie w celu realizacji Usługi.<br><br>
+                Pliki są przechowywane tylko przez czas niezbędny do ich przetworzenia i automatycznie usuwane. Nie rościmy sobie żadnych praw do Twoich treści poza zakresem koniecznym do działania Slimage.<br><br>
+
+                2. <strong>Zasady korzystania</strong><br>
+                Zobowiązujesz się korzystać z Usługi zgodnie z prawem i w sposób odpowiedzialny. Nie wolno przesyłać plików szkodliwych, nielegalnych ani próbować zakłócać działania Usługi.<br><br>
+
+                3. <strong>Prywatność i przetwarzanie danych</strong><br>
+                Gromadzimy wyłącznie minimalne dane potrzebne do działania Slimage. Logi techniczne, IP adres, mogą być przechowywane w celu zapobiegania nadużyciom. Przesłane obrazy nie są udostępniane podmiotom trzecim poza niezbędnymi dostawcami usług (np. hosting).<br><br>
+
+                4. <strong>Odpowiedzialność</strong><br>
+                Slimage jest udostępniany „w stanie takim, w jakim jest”. Nie ponosimy odpowiedzialności za utratę danych, przerwy w działaniu ani szkody pośrednie. Korzystasz z Usługi na własne ryzyko.<br><br>
+
+                5. <strong>Zmiany</strong><br>
+                Możemy aktualizować Warunki w przyszłości. Dalsze korzystanie z Usługi oznacza akceptację naszych zasad.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+
+<div id="slimage-snail">
+    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- CIEŃ -->
+        <ellipse class="snail-layer shadow" data-depth="1"
+                 cx="80" cy="90" rx="40" ry="8"
+                 fill="rgba(0,0,0,0.45)"/>
+
+        <!-- CIAŁO (TYŁ) -->
+        <g class="snail-layer body-back snail-body" data-depth="2">
+            <path d="M40 70 C 30 70, 20 65, 18 58 C 16 50, 22 45, 30 46 C 38 47, 45 55, 50 60 C 55 65, 60 70, 70 72 L 95 72 C 105 72, 115 76, 120 80 L 55 80 C 48 80, 43 77, 40 70 Z"
+                  fill="#00c9a7"/>
+        </g>
+
+        <!-- MUSZLA — TYLNA GŁĘBIA -->
+        <g class="snail-layer shell-back" data-depth="3">
+            <circle cx="70" cy="55" r="26" fill="url(#portalDepth)" />
+        </g>
+
+        <!-- MGŁA ENERGETYCZNA -->
+        <g class="snail-layer portal-fog" data-depth="3.5">
+            <circle cx="70" cy="55" r="24" class="portal-fog-circle"/>
+        </g>
+
+        <!-- PORTAL — GŁÓWNY GLOW -->
+        <g class="snail-layer shell-portal" data-depth="4">
+            <circle cx="70" cy="55" r="22" class="portal-core" fill="url(#portalGlow)"/>
+        </g>
+
+        <!-- SPIRALA 1 (zewnętrzna) -->
+        <g class="snail-layer shell-spiral-outer" data-depth="4.5">
+            <path class="snail-spiral spiral-outer"
+                  d="M70 55
+                     m -2 0
+                     a 2 2 0 1 1 4 0
+                     a 4 4 0 1 1 -8 0
+                     a 6 6 0 1 1 12 0
+                     a 8 8 8 1 1 -16 0
+                     a 10 10 0 1 1 20 0
+                     a 12 12 0 1 1 -24 0"
+                  fill="none"
+                  stroke="#00ffe0"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </g>
+
+        <!-- SPIRALA 2 (wewnętrzna) -->
+        <g class="snail-layer shell-spiral-inner" data-depth="5">
+            <path class="snail-spiral spiral-inner"
+                  d="M70 55
+                     m -1 0
+                     a 1 1 0 1 1 2 0
+                     a 3 3 0 1 1 -6 0
+                     a 5 5 0 1 1 10 0
+                     a 7 7 0 1 1 -14 0"
+                  fill="none"
+                  stroke="#00ffe0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </g>
+
+        <!-- MUSZLA — PRZEDNIA KRAWĘDŹ -->
+        <!-- <g class="snail-layer shell-front" data-depth="6">
+            <circle class="snail-shell"
+                    cx="70" cy="55" r="18"
+                    fill="url(#portalRefract)"
+                    stroke="#00ffe0"
+                    stroke-width="2" />
+        </g> -->
+
+        <!-- CIAŁO (PRZÓD) -->
+        <g class="snail-layer body-front snail-body" data-depth="4">
+            <path d="M90 68 L 125 68 C 135 68, 145 72, 150 78 L 95 78 C 90 78, 86 75, 84 72 Z"
+                  fill="#00e6c3"/>
+        </g>
+
+        <!-- GŁOWA -->
+        <g class="snail-layer head" data-depth="5">
+            <circle cx="140" cy="60" r="11" fill="#00ffc8"/>
+
+            <line x1="136" y1="50" x2="130" y2="38" stroke="#00ffc8" stroke-width="2" stroke-linecap="round"/>
+            <line x1="144" y1="50" x2="150" y2="38" stroke="#00ffc8" stroke-width="2" stroke-linecap="round"/>
+
+            <circle class="snail-eye" cx="130" cy="38" r="3" fill="#00ffc8"/>
+            <circle class="snail-eye" cx="150" cy="38" r="3" fill="#00ffc8"/>
+
+            <circle class="snail-pupil" cx="130" cy="38" r="1.4" fill="#051013"/>
+            <circle class="snail-pupil" cx="150" cy="38" r="1.4" fill="#051013"/>
+        </g>
+
+        <!-- GRADIENTY -->
+        <defs>
+            <radialGradient id="portalDepth">
+                <stop offset="0%" stop-color="#002a22"/>
+                <stop offset="50%" stop-color="#001510"/>
+                <stop offset="100%" stop-color="#000000"/>
+            </radialGradient>
+
+            <radialGradient id="portalGlow">
+                <stop offset="0%" stop-color="#00ffe0"/>
+                <stop offset="40%" stop-color="#00c4a3"/>
+                <stop offset="80%" stop-color="#006f5a"/>
+                <stop offset="100%" stop-color="#003f34"/>
+            </radialGradient>
+
+            <linearGradient id="portalRefract" x1="50" y1="35" x2="90" y2="75">
+                <stop offset="0%" stop-color="#00ffe0" stop-opacity="0.9"/>
+                <stop offset="40%" stop-color="#00bfa0" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#00483a" stop-opacity="0.2"/>
+            </linearGradient>
+
+            <radialGradient id="portalFog">
+                <stop offset="0%" stop-color="#00ffe0" stop-opacity="0.4"/>
+                <stop offset="60%" stop-color="#008f78" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#003f34" stop-opacity="0"/>
+            </radialGradient>
+        </defs>
+    </svg>
+</div>
+
+<!-- Neonowy ślad -->
+<div id="snail-trail"></div>
+
+<!-- Lens flare + iskry -->
+<div id="snail-lensflare"></div>
+<div id="snail-sparks"></div>
+
+<div id="matrix-mouse"></div>
+
+
+<script src="/static/js/slimage.js"></script>
+<script src="/static/js/batch.js"></script>
+
+<script>
+document.getElementById("themeSwitch").addEventListener("change", (e) => {
+    document.documentElement.setAttribute("data-theme", e.target.checked ? "light" : "dark");
+});
+
+document.getElementById("compactSwitch").addEventListener("change", (e) => {
+    document.body.classList.toggle("compact", e.target.checked);
+});
+
+// =========================
+// LOGOUT
+// =========================
+
+function logout() {
+    fetch("/auth/logout", { method: "POST" })
+        .then(() => {
+            window.location.href = "/login_page";
+        });
+}
+</script>
+
 </body>
 </html>

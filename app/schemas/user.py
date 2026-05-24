@@ -1,12 +1,22 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 
 class UserBase(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
 
-class UserCreate(UserBase):
-    password: str
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=128)
+    # full_name: str | None = None
+
+    @validator("password")
+    def validate_password(cls, v):
+        if not isinstance(v, str):
+            raise ValueError("Password must be a string")
+        if len(v.encode("utf-8")) > 128:
+            raise ValueError("Password too long")
+        return v
 
 class UserUpdate(UserBase):
     password: Optional[str] = None
@@ -24,3 +34,17 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+
+class LoginSchema(BaseModel):
+    email: EmailStr
+    password: str 
+
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordSchema(BaseModel):
+    token: str
+    new_password: str

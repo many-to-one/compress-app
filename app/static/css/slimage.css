@@ -1,0 +1,267 @@
+/* Pozycja ślimaka */
+#slimage-snail {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 200px;
+    height: 120px;
+    pointer-events: none;
+    z-index: 50;
+    transition: transform 0.15s ease-out;
+}
+
+/* Neonowy ślad */
+#snail-trail {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    height: 4px;
+    width: 0;
+    background: linear-gradient(90deg, #00ffc8, transparent);
+    filter: drop-shadow(0 0 6px #00ffc8);
+    pointer-events: none;
+    z-index: 40;
+    transition: width 0.1s linear;
+}
+
+/* Spirale i muszla */
+.snail-shell,
+.snail-spiral {
+    transform-origin: 70px 55px;
+}
+
+.snail-spiral {
+    filter: drop-shadow(0 0 8px #00ffe0);
+}
+
+.spiral-outer { opacity: 0.9; }
+.spiral-inner { opacity: 0.7; }
+
+.snail-shell {
+    filter: drop-shadow(0 0 10px #00ffe0);
+}
+
+/* Portal pulsujący */
+.portal-core {
+    animation: portalPulse 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px #00ffe0);
+}
+
+@keyframes portalPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+/* Mgła energetyczna 3D */
+.portal-fog-circle {
+    fill: url(#portalFog);
+    opacity: 0.35;
+    animation: fogMove 6s ease-in-out infinite;
+    transform-origin: 70px 55px;
+}
+
+@keyframes fogMove {
+    0% { transform: scale(1) translate(0px, 0px); opacity: 0.3; }
+    50% { transform: scale(1.15) translate(2px, 2px); opacity: 0.45; }
+    100% { transform: scale(1) translate(0px, 0px); opacity: 0.3; }
+}
+
+/* Portal otwierający się przy kompresji */
+.portal-core.open,
+.snail-spiral.open,
+.snail-shell.open {
+    animation: portalOpen 0.6s ease-out forwards;
+}
+
+@keyframes portalOpen {
+    0% { transform: scale(1); filter: drop-shadow(0 0 10px #00ffe0); }
+    100% { transform: scale(1.25); filter: drop-shadow(0 0 25px #00ffe0); }
+}
+
+/* Iskry energii */
+#snail-sparks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 60;
+}
+
+.spark {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #00ffe0;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 8px #00ffe0);
+    animation: sparkFly 0.6s ease-out forwards;
+}
+
+@keyframes sparkFly {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(20px,-20px) scale(0.2); opacity: 0; }
+}
+
+/* Lens flare */
+#snail-lensflare {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 61;
+}
+
+.lensflare {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: radial-gradient(circle, #ffffff, #00ffe0);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 10px #00ffe0);
+    animation: flareMove 0.8s ease-out forwards;
+}
+
+@keyframes flareMove {
+    0% { transform: scale(0.3); opacity: 0.9; }
+    100% { transform: translate(20px, -20px) scale(1.2); opacity: 0; }
+}
+
+/* Mruganie */
+.snail-eye {
+    transform-origin: center;
+    animation: blink 2.5s infinite;
+}
+@keyframes blink {
+    0%, 96%, 100% { transform: scaleY(1); }
+    97%, 99% { transform: scaleY(0.1); }
+}
+
+/* Falowanie ciała */
+.snail-body {
+    animation: bodyWave 3s ease-in-out infinite;
+}
+@keyframes bodyWave {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(4px); }
+}
+
+/* Grawitacja portalu */
+.snail-body.gravity {
+    animation: gravityPull 1.2s ease-in-out infinite;
+}
+
+@keyframes gravityPull {
+    0% { transform: translateY(0px) skewX(0deg); }
+    50% { transform: translateY(-2px) skewX(-4deg); }
+    100% { transform: translateY(0px) skewX(0deg); }
+}
+
+/* Loading (oczekiwanie) */
+#slimage-snail.loading .snail-body {
+    animation: loadingPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#slimage-snail.loading .snail-shell {
+    animation: loadingSpin 1s linear infinite;
+}
+
+@keyframes loadingSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Sukces */
+#slimage-snail.success .portal-core {
+    animation: successFlash 0.5s ease-out;
+}
+
+@keyframes successFlash {
+    0% { filter: drop-shadow(0 0 10px #00ffe0); transform: scale(1); }
+    100% { filter: drop-shadow(0 0 40px #00ffe0); transform: scale(1.4); }
+}
+
+#slimage-snail.success {
+    animation: snailJump 0.4s ease-out;
+}
+
+@keyframes snailJump {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
+
+/* Error */
+#slimage-snail.error .portal-core {
+    animation: errorGlitch 0.4s ease-out;
+    filter: drop-shadow(0 0 20px #ff0033);
+}
+
+@keyframes errorGlitch {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(-3px,2px); }
+    50% { transform: translate(3px,-2px); }
+    75% { transform: translate(-2px,-1px); }
+    100% { transform: translate(0,0); }
+}
+
+#slimage-snail.error {
+    animation: snailShake 0.4s ease-out;
+}
+
+@keyframes snailShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+
+
+
+//Matrix
+#matrix-mouse {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.matrix-char {
+    position: absolute;
+    color: #00ffc8;
+    font-family: monospace;
+    font-size: 16px;
+    opacity: 1;
+    text-shadow: 0 0 6px #00ffc8;
+    animation: matrixFall 0.45s linear forwards,
+               matrixGlitch 0.25s steps(2) alternate;
+}
+
+/* spadanie + rozpuszczanie */
+@keyframes matrixFall {
+    0% {
+        transform: translateY(0px) scale(1);
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100% {
+        transform: translateY(30px) scale(0.6);
+        opacity: 0;
+        filter: blur(3px);
+    }
+}
+
+/* glitchowanie */
+@keyframes matrixGlitch {
+    0% { transform: translateX(0px); }
+    50% { transform: translateX(-2px); }
+    100% { transform: translateX(2px); }
+}
+

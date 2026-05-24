@@ -1,4 +1,5 @@
 # FILE: services/compress.py
+import io
 from io import BytesIO
 from PIL import Image
 import pillow_avif  # optional
@@ -24,7 +25,7 @@ def compress_jpg(input_bytes: bytes) -> bytes:
     img.save(
         buffer,
         format="JPEG",
-        quality=50,
+        quality=90,
         optimize=True,
         progressive=True,
         subsampling=2
@@ -39,7 +40,7 @@ def compress_webp(input_bytes: bytes) -> bytes:
     img.save(
         buffer,
         format="WEBP",
-        quality=60,
+        quality=90,
         method=6
     )
     return buffer.getvalue()
@@ -56,3 +57,12 @@ def auto_compress(input_bytes: bytes, filename: str) -> bytes:
         return compress_webp(input_bytes)
     else:
         raise ValueError("Unsupported file format")
+
+
+def auto_convert_to_webp(data: bytes, filename: str) -> bytes:
+    img = Image.open(io.BytesIO(data))
+
+    output = io.BytesIO()
+    img.save(output, format="WEBP", quality=85)
+
+    return output.getvalue()
