@@ -26,30 +26,40 @@ PUBLIC_PATHS = {
     "/forgot_page",
     "/auth/login",
     "/auth/register",
-    "/auth/forgot-password"
+    "/auth/forgot-password",
+    "/forgot_password",
 }
+
+PUBLIC_PREFIXES = [
+    "/reset_password",   # <-- tu obsługujemy token w query
+    "/static",
+]
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
 
-    # jeśli endpoint jest publiczny → przepuszczamy
-    if path in PUBLIC_PATHS or path.startswith("/static"):
+    # pełne ścieżki
+    if path in PUBLIC_PATHS:
         return await call_next(request)
+
+    # prefixy (np. /reset-password?token=...)
+    for prefix in PUBLIC_PREFIXES:
+        if path.startswith(prefix):
+            return await call_next(request)
 
     # sprawdzamy ciasteczko
     token = request.cookies.get("access_token")
     if not token:
         return RedirectResponse("/login_page")
 
-    # weryfikujemy JWT
     try:
         jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
         return RedirectResponse("/login_page")
 
-    # OK → przepuszczamy
     return await call_next(request)
+
 
 
 # statyczne pliki (JS, CSS)

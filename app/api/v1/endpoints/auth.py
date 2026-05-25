@@ -2,10 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
-from schemas.user import User, UserCreate, Token, LoginSchema
+from schemas.user import User, UserCreate, Token, LoginSchema, ResetPasswordSchema, ForgotPasswordSchema
 from crud.user import get_user_by_email, create_user
 from core.security import verify_password, create_access_token, create_reset_token
-from core.config import mail_conf
+from core.config import settings
+
+import uuid
+import smtplib
+from email.mime.text import MIMEText
+
+SMTP_PASSWORD = settings.SMTP_PASSWORD
+EMAIL = settings.EMAIL
+RESET_URL = settings.RESET_URL
+EMAIL_FROM = settings.EMAIL_FROM
 
 router = APIRouter()
 
@@ -113,23 +122,39 @@ async def forgot_password(
 
         token = create_reset_token(user.email)
 
-        reset_link = f"http://localhost:8000/reset-password?token={token}"
+        reset_link = f"{RESET_URL}{token}"
+        print("RESET LINK:", reset_link)  # debug
 
-        message = MessageSchema(
-            subject="Reset password",
-            recipients=[user.email],
-            body=f"""
-            Click link to reset password:
+        msg = MIMEText(f"Reset password link: {reset_link}")
+        msg["Subject"] = "Password reset"
+        msg["From"] = EMAIL_FROM
+        msg["To"] = user.email
 
-            {reset_link}
-            """,
-            subtype="plain"
-        )
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(EMAIL, SMTP_PASSWORD)
+            smtp.send_message(msg)
 
-        fm = FastMail(mail_conf)
-
-        await fm.send_message(message)
+        print(f"Email resetujący wysłany do {user.email}")
 
     return {
         "message": "If account exists, reset email was sent"
     }
+
+
+# -------------------------
+    # Reset hasła
+    # -------------------------
+    # async def on_after_forgot_password(self, user: User, token: str, request=None):
+    #     reset_link = f"{RESET_URL}{token}"
+    #     print("RESET LINK:", reset_link)  # debug
+
+    #     msg = MIMEText(f"Reset password link: {reset_link}")
+    #     msg["Subject"] = "Password reset"
+    #     msg["From"] = EMAIL_FROM
+    #     msg["To"] = user.email
+
+    #     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+    #         smtp.login(EMAIL, SMTP_PASSWORD)
+    #         smtp.send_message(msg)
+
+    #     print(f"Email resetujący wysłany do {user.email}")
