@@ -2,9 +2,10 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Login</title>
+    <title data-i18n="login_badge">Login</title>
 
     <link rel="stylesheet" href="/static/css/auth.css">
 </head>
@@ -17,54 +18,56 @@
 
     <form class="auth-card" id="loginForm" method="POST" action="/auth/login">
 
-        <div class="badge">
+        <div class="badge" data-i18n="login_badge">
             Login Page
         </div>
 
-        <h1>Welcome Back</h1>
+        <h1 data-i18n="login_title">Welcome Back</h1>
 
-        <p>
+        <p data-i18n="login_subtitle">
             Login and generate your JWT access token.
         </p>
         
-            <div class="input-group">
-                <label>Email</label>
-                <input
-                    type="email"
-                    id="email"
-                    placeholder="hello@example.com"
-                    required
-                >
-            </div>
+        <div class="input-group">
+            <label data-i18n="login_email_label">Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="hello@example.com"
+                data-i18n-placeholder="login_email_placeholder"
+                required
+            >
+        </div>
 
-            <div class="input-group">
-                <label>Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    placeholder="••••••••"
-                    required
-                >
-            </div>
+        <div class="input-group">
+            <label data-i18n="login_password_label">Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="••••••••"
+                data-i18n-placeholder="login_password_placeholder"
+                required
+            >
+        </div>
 
-            <button type="submit">Login</button>
-
+        <button type="submit" data-i18n="login_button">Login</button>
 
         <div class="result" id="result"></div>
 
         <div class="bottom-text">
-            <a href="/forgot_password">Forgot password</a>
+            <a href="/forgot_password" data-i18n="login_forgot">Forgot password</a>
         </div>
 
         <div class="bottom-text">
-            No account?
-            <a href="/register_page">Register</a>
+            <span data-i18n="login_no_account">No account?</span>
+            <a href="/register_page" data-i18n="login_register">Register</a>
         </div>
 
     </form>
 
 </div>
 
+<script src="/static/js/i18n.js"></script>
 <script src="/static/js/login.js"></script>
 
 </body>

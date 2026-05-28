@@ -2,12 +2,15 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <title>Batch Compression</title>
     <link rel="stylesheet" href="/static/css/batch.css">
     <link rel="stylesheet" href="/static/css/info.css">
     <link rel="stylesheet" href="/static/css/slimage.css">
     <link rel="stylesheet" href="/static/css/header.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
 </head>
 
 <body>
@@ -56,68 +59,92 @@
 
         {% if is_authenticated %}
 
-            <button class="auth-tab" onclick="logout()">
+            <button data-i18n="logout" class="auth-tab" onclick="logout()">
                 Logout
             </button>
 
             {% else %}
 
-            <a href="/login_page" class="auth-tab active">
+            <a data-i18n="login" href="/login_page" class="auth-tab active">
                 Login
             </a>
 
-            <a href="/register_page" class="auth-tab">
+            <a data-i18n="register" href="/register_page" class="auth-tab">
                 Register
             </a>
 
         {% endif %}
 
+        <div class="lang-switcher">
+            <button onclick="setLang('en')">EN</button>
+
+            <button class="lang-region-btn" onclick="setLang('region')" aria-label="Regional language">
+                <svg viewBox="0 0 24 24" class="lang-planet">
+                    <!-- Tło planety -->
+                    <circle cx="12" cy="12" r="9" class="planet-base" />
+                    <!-- Poziome „równiki” -->
+                    <path d="M4 12h16" class="planet-line" />
+                    <path d="M6 9h12" class="planet-line thin" />
+                    <path d="M6 15h12" class="planet-line thin" />
+                    <!-- Pionowe „meridiany” -->
+                    <path d="M12 3a9 9 0 0 1 0 18" class="planet-line" />
+                    <path d="M12 3a9 9 0 0 0 0 18" class="planet-line" />
+                </svg>
+            </button>
+        </div>
+
     </nav>
 </header>
 
 
-<h1>Batch Image Compression</h1>
+<h1 data-i18n="title_image_compression">Image Compression</h1>
 
 <div class="container">
 
-    <form id="uploadForm" >
+    <form id="uploadForm">
         <div id="dropZone" class="drop-zone full-zone row-center">
-            <!-- <p>Upuść pliki tutaj lub</p> -->
+
             <label class="file-btn">
-                Wybierz pliki
+                <span data-i18n="choose_files">Wybierz pliki</span>
                 <input type="file" id="files" name="files" multiple hidden>
             </label>
-            <button class="btn" type="submit">Start Compression</button>
-            <button class="btn alt" id="convertWebpBtn" type="button">Convert to WebP</button>
+
+            <button class="btn" type="submit" data-i18n="start_compression">
+                Start Compression
+            </button>
+
+            <button class="btn alt" id="convertWebpBtn" type="button" data-i18n="convert_to_webp">
+                Convert to WebP
+            </button>
+
         </div>
     </form>
 
-
     <div id="status"></div>
-
     <div id="fileProgressContainer"></div>
 
 </div>
 
 <div class="info-box">
-    <h2>Why reduce image size?</h2>
+    <h2 data-i18n="why_reduce_title">Why reduce image size?</h2>
     <ul>
-        <li><strong>Faster websites</strong> — smaller images load instantly and improve SEO.</li>
-        <li><strong>Less storage usage</strong> — save space on servers, clouds and devices.</li>
-        <li><strong>Better performance</strong> — apps and galleries open faster.</li>
-        <li><strong>Quicker sharing</strong> — upload and send images much faster.</li>
-        <li><strong>Lower bandwidth</strong> — ideal for mobile users and slow networks.</li>
+        <li data-i18n="why_reduce_1"><strong>Faster websites</strong> — smaller images load instantly and improve SEO.</li>
+        <li data-i18n="why_reduce_2"><strong>Less storage usage</strong> — save space on servers, clouds and devices.</li>
+        <li data-i18n="why_reduce_3"><strong>Better performance</strong> — apps and galleries open faster.</li>
+        <li data-i18n="why_reduce_4"><strong>Quicker sharing</strong> — upload and send images much faster.</li>
+        <li data-i18n="why_reduce_5"><strong>Lower bandwidth</strong> — ideal for mobile users and slow networks.</li>
     </ul>
 </div>
 
 
 <div class="faq-container">
-    <h2 class="faq-title">FAQ — Image Compression & WebP</h2>
+    <h2 class="faq-title" data-i18n="faq_title">FAQ — Image Compression & WebP</h2>
 
+    <!-- FAQ 1 -->
     <div class="faq-item">
         <input type="checkbox" id="faq1">
         <label class="faq-question" for="faq1">
-            <span>What does this tool do?</span>
+            <span data-i18n="faq_q1">What does this tool do?</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -128,14 +155,17 @@
             </span>
         </label>
         <div class="faq-answer">
-            <p>This tool compresses and optionally converts your images to modern formats like WebP to reduce file size while keeping visual quality.</p>
+            <p data-i18n="faq_a1">
+                This tool compresses and optionally converts your images to modern formats like WebP to reduce file size while keeping visual quality.
+            </p>
         </div>
     </div>
 
+    <!-- FAQ 2 -->
     <div class="faq-item">
         <input type="checkbox" id="faq2">
         <label class="faq-question" for="faq2">
-            <span>Does it support WebP conversion?</span>
+            <span data-i18n="faq_q2">Does it support WebP conversion?</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -146,14 +176,17 @@
             </span>
         </label>
         <div class="faq-answer">
-            <p>Yes. You can compress images in their original format or convert them to WebP for even smaller file sizes.</p>
+            <p data-i18n="faq_a2">
+                Yes. You can compress images in their original format or convert them to WebP for even smaller file sizes.
+            </p>
         </div>
     </div>
 
+    <!-- FAQ 3 -->
     <div class="faq-item">
         <input type="checkbox" id="faq3">
         <label class="faq-question" for="faq3">
-            <span>Why should I compress images?</span>
+            <span data-i18n="faq_q3">Why should I compress images?</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -164,14 +197,17 @@
             </span>
         </label>
         <div class="faq-answer">
-            <p>Smaller images mean faster websites, better UX, improved SEO, lower bandwidth usage and smoother galleries or apps.</p>
+            <p data-i18n="faq_a3">
+                Smaller images mean faster websites, better UX, improved SEO, lower bandwidth usage and smoother galleries or apps.
+            </p>
         </div>
     </div>
 
-    <div class="faq-item">
+    <!-- FAQ 4 -->
+    <!-- <div class="faq-item">
         <input type="checkbox" id="faq4">
         <label class="faq-question" for="faq4">
-            <span>Is my data private?</span>
+            <span data-i18n="faq_q4">Is my data private?</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -182,14 +218,17 @@
             </span>
         </label>
         <div class="faq-answer">
-            <p>All processing happens on your own server. No third‑party services receive your files, keeping everything private.</p>
+            <p data-i18n="faq_a4">
+                All processing happens on our's server. No third‑party services receive your files, keeping everything private.
+            </p>
         </div>
-    </div>
+    </div> -->
 
+    <!-- FAQ 5 -->
     <div class="faq-item">
         <input type="checkbox" id="faq5">
         <label class="faq-question" for="faq5">
-            <span>What is WebP and when should I use it?</span>
+            <span data-i18n="faq_q5">What is WebP and when should I use it?</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -200,14 +239,17 @@
             </span>
         </label>
         <div class="faq-answer">
-            <p>WebP is a modern image format that offers much better compression than JPG or PNG. Use it for web, apps and any place where performance matters.</p>
+            <p data-i18n="faq_a5">
+                WebP is a modern image format that offers much better compression than JPG or PNG. Use it for web, apps and any place where performance matters.
+            </p>
         </div>
     </div>
 
+    <!-- FAQ 6 — Terms -->
     <div class="faq-item">
         <input type="checkbox" id="faq6">
         <label class="faq-question" for="faq6">
-            <span>Terms of Use</span>
+            <span data-i18n="faq_q6">Terms of Use</span>
             <span class="faq-icon">
                 <svg viewBox="0 0 24 24" class="icon-plus">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -217,9 +259,10 @@
                 </svg>
             </span>
         </label>
+
         <div class="faq-answer">
+            <p><strong data-i18n="faq_terms_en">EN — Terms of Use (summary)</strong></p>
             <p>
-                <strong>EN — Terms of Use (summary)</strong><br>
                 1. <strong>Uploaded Content</strong><br>
                 You keep full ownership of all images and files you upload to Slimage. By using the Service, you grant us a temporary, non‑exclusive permission to process, compress, convert, and store your files only for the purpose of delivering the Service.<br><br>
                 Files are stored only for the time required to process them and are automatically deleted. We do not claim any rights to your content beyond what is necessary to operate Slimage.<br><br>
@@ -236,9 +279,11 @@
                 5. <strong>Changes</strong><br>
                 We may update these Terms from time to time. Continued use of Slimage means you accept our Terms.
             </p>
-                <br><br>
+
+            <br><br>
+
+            <p><strong data-i18n="faq_terms_pl">PL — Warunki korzystania (skrót)</strong></p>
             <p>
-                <strong>PL — Warunki korzystania (skrót)</strong><br>
                 1. <strong>Przesyłane pliki</strong><br>
                 Zachowujesz pełne prawa do wszystkich obrazów i plików przesyłanych do Slimage. Korzystając z Usługi, udzielasz nam tymczasowej, niewyłącznej zgody na przetwarzanie, kompresję, konwersję i przechowywanie plików wyłącznie w celu realizacji Usługi.<br><br>
                 Pliki są przechowywane tylko przez czas niezbędny do ich przetworzenia i automatycznie usuwane. Nie rościmy sobie żadnych praw do Twoich treści poza zakresem koniecznym do działania Slimage.<br><br>
@@ -257,6 +302,8 @@
             </p>
         </div>
     </div>
+
+</div>
 
 </div>
 
@@ -392,8 +439,10 @@
 <div id="matrix-mouse"></div>
 
 
+<script src="/static/js/i18n.js"></script>
 <script src="/static/js/slimage.js"></script>
-<script src="/static/js/batch.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script type="module" src="/static/js/batch.js"></script>
 
 <script>
 document.getElementById("themeSwitch").addEventListener("change", (e) => {

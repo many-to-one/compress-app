@@ -1,0 +1,70 @@
+{
+  "title": "Slimage — Compress your images instantly",
+  "upload_title": "Upload your files",
+  "login": "Login",
+  "logout": "Logout",
+  "register": "Register",
+  "forgot_password": "Forgot password?",
+  "title_image_compression": "Image Compression",
+  "choose_files": "Choose files",
+  "start_compression": "Start Compression",
+  "convert_to_webp": "Convert to WebP",
+  "why_reduce_title": "Why reduce image size?",
+  "why_reduce_1": "Faster websites — smaller images load instantly and improve SEO.",
+  "why_reduce_2": "Less storage usage — save space on servers, clouds and devices.",
+  "why_reduce_3": "Better performance — apps and galleries open faster.",
+  "why_reduce_4": "Quicker sharing — upload and send images much faster.",
+  "why_reduce_5": "Lower bandwidth — ideal for mobile users and slow networks.",
+  "faq_title": "FAQ — Image Compression & WebP",
+
+  "faq_q1": "What does this tool do?",
+  "faq_a1": "This tool compresses and optionally converts your images to modern formats like WebP to reduce file size while keeping visual quality.",
+
+  "faq_q2": "Does it support WebP conversion?",
+  "faq_a2": "Yes. You can compress images in their original format or convert them to WebP for even smaller file sizes.",
+
+  "faq_q3": "Why should I compress images?",
+  "faq_a3": "Smaller images mean faster websites, better UX, improved SEO, lower bandwidth usage and smoother galleries or apps.",
+
+  "faq_q4": "Is my data private?",
+  "faq_a4": "All processing happens on your own server. No third‑party services receive your files, keeping everything private.",
+
+  "faq_q5": "What is WebP and when should I use it?",
+  "faq_a5": "WebP is a modern image format that offers much better compression than JPG or PNG. Use it for web, apps and any place where performance matters.",
+
+  "faq_q6": "Terms of Use",
+  "faq_terms_en": "EN — Terms of Use (summary)",
+  "faq_terms_pl": "PL — Terms of Use (summary)",
+  "reset_badge": "RESET PASSWORD",
+  "reset_title": "Forgot Password",
+  "reset_subtitle": "Enter your email and we’ll send you a reset link.",
+  "reset_email_label": "Email",
+  "reset_send_btn": "Send Reset Link",
+  "reset_back_to_login": "Back to login",
+  "login_badge": "Login Page",
+  "login_title": "Welcome Back",
+  "login_subtitle": "Login and generate your JWT access token.",
+  "login_email_label": "Email",
+  "login_email_placeholder": "hello@example.com",
+  "login_password_label": "Password",
+  "login_password_placeholder": "••••••••",
+  "login_button": "Login",
+  "login_forgot": "Forgot password",
+  "login_no_account": "No account?",
+  "login_register": "Register",
+
+  "register_badge": "POST /register",
+  "register_title": "Create Account",
+  "register_subtitle": "Create a new account in your FastAPI backend.",
+  "register_email_label": "Email",
+  "register_email_placeholder": "hello@example.com",
+  "register_password_label": "Password",
+  "register_password_placeholder": "••••••••",
+  "register_button": "Register",
+  "register_have_account": "Already have an account?",
+  "register_login": "Login"
+}
+
+
+
+

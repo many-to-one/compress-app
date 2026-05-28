@@ -124,7 +124,7 @@
 }
 
 .faq-item input:checked ~ .faq-answer {
-    max-height: 200px;
+    max-height: 200%;
     opacity: 1;
     transform: translateY(0);
     margin-top: 6px;

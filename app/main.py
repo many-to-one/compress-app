@@ -19,8 +19,10 @@ app = FastAPI(title="Enterprise FastAPI")
 
 templates = Jinja2Templates(directory="templates")
 
+print("TEMPLATES =", templates)
+
+
 PUBLIC_PATHS = {
-    "/", 
     "/login_page",
     "/register_page",
     "/forgot_page",
@@ -91,6 +93,7 @@ async def home(request: Request):
 @app.get("/login_page")
 async def batch_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+    
 
 @app.get("/register_page")
 async def batch_page(request: Request):

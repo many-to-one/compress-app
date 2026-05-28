@@ -303,3 +303,60 @@
         inset 0 0 14px rgba(0,255,200,0.45),
         0 0 20px rgba(0,255,200,0.4);
 }
+
+
+/* ========================= */
+/*      LANGUAGE SWITCH      */
+/* ========================= */
+
+.lang-switcher {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.lang-switcher button {
+    background: transparent;
+    border: 1px solid #0ff;
+    color: #0ff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.lang-switcher button:hover {
+    background: #0ff;
+    color: #000;
+}
+
+.lang-region-btn {
+    width: 34px;
+    padding: 6px;
+}
+
+.lang-planet {
+    width: 18px;
+    height: 18px;
+}
+
+.planet-base {
+    fill: transparent;
+    stroke: #0ff;
+    stroke-width: 1.4;
+}
+
+.planet-line {
+    stroke: #0ff;
+    stroke-width: 1.2;
+    fill: none;
+}
+
+.planet-line.thin {
+    stroke-width: 0.9;
+}
+

@@ -1,0 +1,72 @@
+{
+  "title": "Slimage — Kompresuj obrazy natychmiast",
+  "upload_title": "Prześlij pliki",
+  "login": "Zaloguj",
+  "logout": "Wyloguj",
+  "register": "Zarejestruj się",
+  "forgot_password": "Zapomniałeś hasła?",
+  "title_image_compression": "Kompresja obrazów",
+  "choose_files": "Wybierz pliki",
+  "start_compression": "Rozpocznij kompresję",
+  "convert_to_webp": "Konwertuj do WebP",
+  "why_reduce_title": "Dlaczego zmniejszać rozmiar obrazów?",
+  "why_reduce_1": "Szybsze strony — mniejsze obrazy ładują się natychmiast i poprawiają SEO.",
+  "why_reduce_2": "Mniejsze zużycie miejsca — oszczędzaj przestrzeń na serwerach, w chmurze i na urządzeniach.",
+  "why_reduce_3": "Lepsza wydajność — aplikacje i galerie otwierają się szybciej.",
+  "why_reduce_4": "Szybsze udostępnianie — przesyłaj i wysyłaj obrazy znacznie szybciej.",
+  "why_reduce_5": "Mniejsze zużycie transferu — idealne dla użytkowników mobilnych i wolnych sieci.",
+  "faq_title": "FAQ — Kompresja obrazów i WebP",
+
+  "faq_q1": "Co robi to narzędzie?",
+  "faq_a1": "To narzędzie kompresuje i opcjonalnie konwertuje obrazy do nowoczesnych formatów, takich jak WebP, zmniejszając rozmiar pliku przy zachowaniu jakości.",
+
+  "faq_q2": "Czy obsługuje konwersję do WebP?",
+  "faq_a2": "Tak. Możesz kompresować obrazy w oryginalnym formacie lub konwertować je do WebP, aby uzyskać jeszcze mniejsze pliki.",
+
+  "faq_q3": "Dlaczego warto kompresować obrazy?",
+  "faq_a3": "Mniejsze obrazy oznaczają szybsze strony, lepszy UX, wyższe SEO, mniejsze zużycie transferu i płynniejsze galerie lub aplikacje.",
+
+  "faq_q4": "Czy moje dane są prywatne?",
+  "faq_a4": "Całe przetwarzanie odbywa się na Twoim serwerze. Żadne zewnętrzne usługi nie otrzymują Twoich plików, więc wszystko pozostaje prywatne.",
+
+  "faq_q5": "Czym jest WebP i kiedy go używać?",
+  "faq_a5": "WebP to nowoczesny format obrazu oferujący znacznie lepszą kompresję niż JPG lub PNG. Używaj go w sieci, aplikacjach i wszędzie tam, gdzie liczy się wydajność.",
+
+  "faq_q6": "Warunki korzystania",
+  "faq_terms_en": "EN — Warunki korzystania (skrót)",
+  "faq_terms_pl": "PL — Warunki korzystania (skrót)",
+
+  "reset_badge": "RESET HASŁA",
+  "reset_title": "Zapomniałeś hasła?",
+  "reset_subtitle": "Podaj swój adres e‑mail, a wyślemy Ci link do resetu hasła.",
+  "reset_email_label": "Email",
+  "reset_send_btn": "Wyślij link resetujący",
+  "reset_back_to_login": "Powrót do logowania",
+
+  "login_badge": "Strona logowania",
+  "login_title": "Witaj ponownie",
+  "login_subtitle": "Zaloguj się i wygeneruj swój token dostępu JWT.",
+  "login_email_label": "Email",
+  "login_email_placeholder": "hello@example.com",
+  "login_password_label": "Hasło",
+  "login_password_placeholder": "••••••••",
+  "login_button": "Zaloguj",
+  "login_forgot": "Zapomniałeś hasła",
+  "login_no_account": "Nie masz konta?",
+  "login_register": "Zarejestruj się",
+
+  "register_badge": "POST /register",
+  "register_title": "Utwórz konto",
+  "register_subtitle": "Utwórz nowe konto w swoim backendzie FastAPI.",
+  "register_email_label": "Email",
+  "register_email_placeholder": "hello@example.com",
+  "register_password_label": "Hasło",
+  "register_password_placeholder": "••••••••",
+  "register_button": "Zarejestruj się",
+  "register_have_account": "Masz już konto?",
+  "register_login": "Zaloguj się"
+}
+
+
+
+
