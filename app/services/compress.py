@@ -5,127 +5,23 @@ from PIL import Image
 import pillow_avif  # optional
 import pillow_heif  # optional
 
-def compress_png(input_bytes: bytes) -> bytes:
-    img = Image.open(BytesIO(input_bytes)).convert("RGBA")
+import subprocess
+import tempfile
 
-    buffer = BytesIO()
-    img.save(
-        buffer,
-        format="PNG",
-        optimize=True,
-        compress_level=9
-    )
-    return buffer.getvalue()
-
-
-# def compress_jpg(input_bytes: bytes) -> bytes:
-#     img = Image.open(BytesIO(input_bytes)).convert("RGB")
-#     img = img.convert("RGB")
-
-#     buffer = BytesIO()
-#     img.save(
-#         buffer,
-#         format="JPEG",
-#         quality=90,
-#         optimize=True,
-#         progressive=True,
-#         subsampling=2
-#     )
-#     return buffer.getvalue()
-
-# def compress_jpg(input_bytes: bytes) -> bytes:
-#     img = Image.open(BytesIO(input_bytes))
-#     icc = img.info.get("icc_profile")
-
-#     # usuń EXIF
-#     img_no_exif = Image.new(img.mode, img.size)
-#     img_no_exif.putdata(list(img.getdata()))
-#     img = img_no_exif.convert("RGB")
-
-#     buffer = BytesIO()
-#     img.save(
-#         buffer,
-#         format="JPEG",
-#         quality=85,
-#         optimize=True,
-#         progressive=True,
-#         subsampling=1,   # 4:2:2
-#         icc_profile=icc
-#     )
-#     return buffer.getvalue()
-
-
-
-# === mozjpeg ===
-# import subprocess
-
-# def compress_jpeg(input_bytes: bytes, quality: int = 85) -> bytes:
-#     # 1. Wczytaj obraz i upewnij się, że jest w RGB
-#     try:
-#         img = Image.open(BytesIO(input_bytes))
-#         if img.mode != "RGB":
-#             img = img.convert("RGB")
-#     except Exception as e:
-#         print(f"Błąd otwierania obrazu: {e}")
-#         return input_bytes
-
-#     # 2. Zapisz do PPM (najszybszy format pośredni dla cjpeg)
-#     ppm_buffer = BytesIO()
-#     img.save(ppm_buffer, format="PPM")
-#     ppm_data = ppm_buffer.getvalue()
-
-#     # 3. Uruchom mozjpeg (cjpeg)
-#     # Wyjaśnienie flag:
-#     # -quality: jakość 0-100
-#     # -optimize: optymalizacja tablic Huffmana
-#     # -progressive: tworzy progresywny JPEG (lepszy do sieci)
-#     # -dct float: najdokładniejsza metoda liczenia DCT
-#     cmd = [
-#         "cjpeg",
-#         "-quality", str(quality),
-#         "-optimize",
-#         "-progressive",
-#         "-dct", "float", 
-#         "-sample", "2x2" 
-#     ]
-
-#     process = subprocess.Popen(
-#         cmd,
-#         stdin=subprocess.PIPE,
-#         stdout=subprocess.PIPE,
-#         stderr=subprocess.PIPE  # Przechwytujemy błędy
-#     )
-
-#     output, stderr = process.communicate(ppm_data)
-
-#     if process.returncode != 0:
-#         print(f"Błąd cjpeg: {stderr.decode()}")
-#         # W razie błędu zwróć oryginał lub rzuć wyjątek
-#         return input_bytes
-
-#     return output
-
-def compress_jpeg(input_bytes: bytes, quality: int = 85) -> bytes:
-    try:
-        img = Image.open(BytesIO(input_bytes))
-        img = img.convert("RGB")
-        print("===compress_jpeg===", img)
-    except Exception as e:
-        print("Błąd otwierania obrazu:", e)
-        return input_bytes
-
-    ppm_buffer = BytesIO()
-    img.save(ppm_buffer, format="PPM")
-    ppm_data = ppm_buffer.getvalue()
-    print("===ppm_data===", ppm_data)
-
+def compress_png(input_bytes: bytes, min_quality: int = 65, max_quality: int = 80) -> bytes:
+    """
+    Kompresuje PNG używając pngquant (stratna kompresja wysokiej jakości).
+    Parametry quality określają dopuszczalny zakres utraty jakości.
+    """
+    # Flagi pngquant:
+    # --quality: zakres jakości (0-100)
+    # --speed: 1 (najwolniejsza/najlepsza) do 11 (najszybsza)
+    # - (oznacza czytanie z stdin i pisanie na stdout)
     cmd = [
-        "cjpeg",
-        "-quality", str(quality),
-        "-optimize",
-        "-progressive",
-        "-dct", "float",
-        "-sample", "2x2"
+        "pngquant",
+        "--quality", f"{min_quality}-{max_quality}",
+        "--speed", "3",
+        "-"
     ]
 
     try:
@@ -135,18 +31,72 @@ def compress_jpeg(input_bytes: bytes, quality: int = 85) -> bytes:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-        output, stderr = process.communicate(ppm_data)
 
-        if process.returncode != 0:
-            print("Błąd cjpeg:", stderr.decode())
-            return input_bytes  # fallback
+        output, stderr = process.communicate(input=input_bytes)
 
-        print("===OUTPUT===", output)
-        return output
+        # pngquant zwraca 99, jeśli nie udało się utrzymać min_quality
+        if process.returncode == 0:
+            return output
+        elif process.returncode == 99:
+            # Jeśli jakość była zbyt niska, spróbuj z szerszym zakresem lub zwróć oryginał
+            print("pngquant: nie udało się utrzymać zadanej jakości, zwracam oryginał.")
+            return input_bytes
+        else:
+            print(f"Błąd pngquant: {stderr.decode()}")
+            return input_bytes
 
     except Exception as e:
-        print("Wyjątek w cjpeg:", e)
+        print(f"Wyjątek podczas kompresji PNG: {e}")
         return input_bytes
+
+
+
+# === mozjpeg ===
+
+
+# def compress_jpeg(input_bytes: bytes, quality: int = 75) -> bytes:
+#     try:
+#         img = Image.open(BytesIO(input_bytes))
+#         img = img.convert("RGB")
+#         # print("===compress_jpeg===", img)
+#     except Exception as e:
+#         print("Błąd otwierania obrazu:", e)
+#         return input_bytes
+
+#     ppm_buffer = BytesIO()
+#     img.save(ppm_buffer, format="PPM")
+#     ppm_data = ppm_buffer.getvalue()
+#     # print("===ppm_data===", ppm_data)
+
+#     cmd = [
+#         "cjpeg",
+#         "-quality", str(quality),          # Zmniejszenie z 85 na 75 (często złoty środek)
+#         "-quant-table", "2",       # Najlepsze tablice dla MozJPEG
+#         "-optimize",               # Optymalizacja (jeśli nie używasz -arithmetic)
+#         "-progressive",            # Progresywne wyświetlanie
+#         "-dct", "float",           # Najdokładniejsza metoda obliczeń
+#         "-sample", "2x2"           # Subsampling 4:2:0 (oszczędność na kolorach niewidoczna dla oka)
+#     ]
+
+#     try:
+#         process = subprocess.Popen(
+#             cmd,
+#             stdin=subprocess.PIPE,
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE
+#         )
+#         output, stderr = process.communicate(ppm_data)
+
+#         if process.returncode != 0:
+#             print("Błąd cjpeg:", stderr.decode())
+#             return input_bytes  # fallback
+
+#         # print("===OUTPUT===", output)
+#         return output
+
+#     except Exception as e:
+#         print("Wyjątek w cjpeg:", e)
+#         return input_bytes
 
 
 
@@ -164,19 +114,19 @@ def compress_webp(input_bytes: bytes) -> bytes:
     return buffer.getvalue()
 
 
-def auto_compress(input_bytes: bytes, filename: str) -> bytes:
-    ext = filename.lower().split(".")[-1]
+# def auto_compress(input_bytes: bytes, filename: str) -> bytes:
+#     ext = filename.lower().split(".")[-1]
 
-    print("===auto_compress===", ext)
+#     print("===auto_compress===", ext)
 
-    if ext in ["png"]:
-        return compress_png(input_bytes)
-    elif ext in ["jpg", "jpeg"]:
-        return compress_jpeg(input_bytes)
-    elif ext in ["webp"]:
-        return compress_webp(input_bytes)
-    else:
-        raise ValueError("Unsupported file format")
+#     if ext in ["png"]:
+#         return compress_png(input_bytes)
+#     elif ext in ["jpg", "jpeg"]:
+#         return compress_jpeg(input_bytes)
+#     elif ext in ["webp"]:
+#         return compress_webp(input_bytes)
+#     else:
+#         raise ValueError("Unsupported file format")
 
 
 def auto_convert_to_webp(data: bytes, filename: str) -> bytes:
@@ -186,3 +136,152 @@ def auto_convert_to_webp(data: bytes, filename: str) -> bytes:
     img.save(output, format="WEBP", quality=85)
 
     return output.getvalue()
+
+
+
+
+from PIL import Image
+
+from io import BytesIO
+
+import subprocess
+import tempfile
+import os
+
+# =========================
+# JPEG
+# =========================
+
+def compress_jpeg(
+    input_bytes: bytes,
+    quality: int = 75
+) -> bytes:
+
+    try:
+
+        img = Image.open(
+            BytesIO(input_bytes)
+        )
+
+        img = img.convert("RGB")
+
+    except Exception as e:
+
+        print("Image open error:", e)
+
+        return input_bytes
+
+    with tempfile.NamedTemporaryFile(
+        suffix=".jpg",
+        delete=False
+    ) as input_file, tempfile.NamedTemporaryFile(
+        suffix=".jpg",
+        delete=False
+    ) as output_file:
+
+        try:
+
+            img.save(
+                input_file,
+                format="JPEG",
+                quality=100
+            )
+
+            input_file.flush()
+
+            cmd = [
+                "cjpeg",
+
+                "-quality",
+                str(quality),
+
+                "-quant-table",
+                "2",
+
+                "-optimize",
+
+                "-progressive",
+
+                "-sample",
+                "2x2",
+
+                "-outfile",
+                output_file.name,
+
+                input_file.name
+            ]
+
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            if result.returncode != 0:
+
+                print(
+                    "mozjpeg error:",
+                    result.stderr.decode()
+                )
+
+                return input_bytes
+
+            with open(
+                output_file.name,
+                "rb"
+            ) as f:
+
+                compressed = f.read()
+
+            return compressed
+
+        except Exception as e:
+
+            print("compress_jpeg:", e)
+
+            return input_bytes
+
+        finally:
+
+            try:
+                os.unlink(input_file.name)
+            except:
+                pass
+
+            try:
+                os.unlink(output_file.name)
+            except:
+                pass
+
+# =========================
+# AUTO
+# =========================
+
+def auto_compress(
+    input_bytes: bytes,
+    filename: str
+) -> bytes:
+
+    ext = filename.lower().split(".")[-1]
+
+    if ext in ["jpg", "jpeg"]:
+
+        return compress_jpeg(
+            input_bytes
+        )
+
+    elif ext == "png":
+
+        return compress_png(
+            input_bytes
+        )
+
+    elif ext == "webp":
+
+        return compress_webp(
+            input_bytes
+        )
+
+    raise ValueError(
+        "Unsupported file format"
+    )

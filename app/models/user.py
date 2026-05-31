@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from db.session import Base
+from sqlalchemy.dialects.postgresql import ARRAY
 
 class User(Base):
     __tablename__ = "users"
@@ -10,4 +11,15 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     full_name = Column(String)
     reset_token = Column(String, nullable=True)
+
+    # wszystkie IP, z których user korzystał
+    ips = Column(ARRAY(String), default=list)
+
+    # zablokowane IP
+    blocked_ips = Column(ARRAY(String), default=list)
+
+    # flaga blokady użytkownika
+    is_blocked = Column(Boolean, default=False)
+
+    is_admin = Column(Boolean, default=False)
 

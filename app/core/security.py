@@ -83,7 +83,8 @@ def create_reset_token(email: str):
     expire = datetime.utcnow() + timedelta(minutes=30)
 
     data = {
-        "sub": email,
+        "sub": str(user.id),
+        "email": email,
         "exp": expire,
         "type": "password_reset"
     }

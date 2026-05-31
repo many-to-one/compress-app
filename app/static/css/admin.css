@@ -1,0 +1,180 @@
+/* ===========================
+   GLOBAL
+=========================== */
+
+body {
+    background: #0d0d0d;
+    color: #eee;
+    font-family: "Inter", sans-serif;
+    margin: 0;
+    padding: 40px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+h1, h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* ===========================
+   TABLE
+=========================== */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+th, td {
+    padding: 14px 18px;
+    text-align: left;
+}
+
+th {
+    background: #181818;
+    color: #ffdd55;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    border-bottom: 1px solid #333;
+}
+
+tr:nth-child(even) {
+    background: #141414;
+}
+
+tr:hover {
+    background: #1e1e1e;
+}
+
+td {
+    border-bottom: 1px solid #222;
+    font-size: 14px;
+}
+
+/* ===========================
+   TAGS
+=========================== */
+
+.tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.tag-yes {
+    background: #ff4444;
+    color: white;
+}
+
+.tag-no {
+    background: #2e7d32;
+    color: white;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.btn {
+    padding: 6px 12px;
+    background: #ffdd55;
+    color: #000;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #ffcc22;
+}
+
+/* ===========================
+   USER DETAIL PAGE
+=========================== */
+
+.user-card {
+    background: #111;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    margin-bottom: 30px;
+}
+
+.user-info {
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.user-info strong {
+    color: #ffdd55;
+}
+
+.ip-list, .blocked-ip-list {
+    background: #141414;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.ip-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #222;
+}
+
+.ip-item:last-child {
+    border-bottom: none;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 900px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 15px;
+        background: #141414;
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    th {
+        display: none;
+    }
+
+    td {
+        border: none;
+        padding: 8px 0;
+        position: relative;
+    }
+
+    td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #ffdd55;
+        display: block;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        font-size: 12px;
+    }
+}

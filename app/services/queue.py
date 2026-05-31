@@ -84,41 +84,6 @@ class CompressionQueue:
             self.queue.task_done()
 
 
-
-    # async def worker(self):
-    #     while True:
-    #         task: CompressionTask = await self.queue.get()
-    #         task.status = TaskStatus.PROCESSING
-
-    #         try:
-    #             total = len(task.files)
-
-    #             for idx, (filename, data) in enumerate(task.files):
-
-    #                 if task.mode == "webp":
-    #                     from services.compress import auto_convert_to_webp
-    #                     compressed = auto_convert_to_webp(data, filename)
-    #                     new_filename = filename.rsplit(".", 1)[0] + ".webp"
-    #                 else:
-    #                     from services.compress import auto_compress
-    #                     compressed = auto_compress(data, filename)
-    #                     new_filename = filename
-
-    #                 task.results[new_filename] = compressed
-    #                 task.compressed_sizes[new_filename] = len(compressed)
-
-    #                 task.file_progress[new_filename] = 100
-    #                 task.progress = int(((idx + 1) / total) * 100)
-
-    #             task.status = TaskStatus.DONE
-
-    #         except Exception as e:
-    #             task.status = TaskStatus.ERROR
-    #             task.error = str(e)
-
-    #         self.queue.task_done()
-
-
     
 
     def build_zip(self, task: CompressionTask) -> bytes:

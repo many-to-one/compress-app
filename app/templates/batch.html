@@ -63,6 +63,10 @@
                 Logout
             </button>
 
+            {% if is_admin %}
+                <a href="/admin/users" class="admin-button">Admin Panel</a>
+            {% endif %}
+
             {% else %}
 
             <a data-i18n="login" href="/login_page" class="auth-tab active">
@@ -439,6 +443,25 @@
 <div id="matrix-mouse"></div>
 
 
+<!-- ========================
+WARNING MODAL
+========================= -->
+<div id="warningModal" class="warning-modal hidden">
+    <div class="warning-box neon-gradient">
+        <h2 data-i18n="warning_title">⚠️ Warning</h2>
+
+        <p id="warningTooMany" data-i18n="warning_too_many_files" class="hidden"></p>
+        <p id="warningTooBig" data-i18n="warning_file_too_big" class="hidden"></p>
+
+        <button id="warningClose" class="btn-warning" data-i18n="warning_ok">
+            OK
+        </button>
+    </div>
+</div>
+
+
+
+
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/slimage.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -463,6 +486,48 @@ function logout() {
             window.location.href = "/login_page";
         });
 }
+
+
+
+document.contentLoaded = () => {
+    // setLang(getSavedLang() || "en");
+    // initBatchCompression();
+    // initSnailAnimation();
+    // initLensFlare();
+    // initMatrixMouse();
+    // initFAQ();
+    detectVPN().then((isVPN) => {
+        if (isVPN) {
+            showWarning("vpn_detected", "Wygląda na to, że używasz VPN. Wyłącz go, aby korzystać z aplikacji.");
+        }
+    });
+};
+
+async function detectVPN() {
+    return new Promise((resolve) => {
+        const rtc = new RTCPeerConnection({iceServers: []});
+        rtc.createDataChannel("");
+
+        rtc.onicecandidate = (event) => {
+            if (!event || !event.candidate) return;
+
+            const candidate = event.candidate.candidate;
+
+            // jeśli IP jest prywatne → OK
+            if (candidate.includes("192.168.") ||
+                candidate.includes("10.") ||
+                candidate.includes("172.16.")) {
+                resolve(false);
+            }
+
+            // jeśli IP jest publiczne → VPN
+            resolve(true);
+        };
+
+        rtc.createOffer().then((offer) => rtc.setLocalDescription(offer));
+    });
+}
+
 </script>
 
 </body>

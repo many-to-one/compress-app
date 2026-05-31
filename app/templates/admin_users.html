@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin – Użytkownicy</title>
+    <link rel="stylesheet" href="/static/css/admin.css">   
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Panel Administratora – Użytkownicy</h1>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Imię i nazwisko</th>
+            <th>Aktywny</th>
+            <th>Zablokowany</th>
+            <th>Admin</th>
+            <th>IP</th>
+            <th>Zablokowane IP</th>
+            <th>Akcje</th>
+        </tr>
+
+        {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.full_name or "-" }}</td>
+
+            <td>
+                {% if u.is_active %}
+                    <span class="tag tag-no">TAK</span>
+                {% else %}
+                    <span class="tag tag-yes">NIE</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if u.is_blocked %}
+                    <span class="tag tag-yes">TAK</span>
+                {% else %}
+                    <span class="tag tag-no">NIE</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if u.is_admin %}
+                    <span class="tag tag-no">TAK</span>
+                {% else %}
+                    <span class="tag tag-yes">NIE</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if u.ips %}
+                    {% for ip in u.ips %}
+                        {{ ip }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>{{ u.blocked_ips | join(", ") if u.blocked_ips else "-" }}</td>
+
+            <td>
+                <a class="btn" href="/admin/user/{{ u.id }}">Szczegóły</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+</body>
+</html>

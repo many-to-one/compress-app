@@ -1,0 +1,54 @@
+
+# FILE: routes/compress_batch.py
+from fastapi import APIRouter, UploadFile, HTTPException
+from fastapi.responses import StreamingResponse
+from services.queue import compression_queue, TaskStatus
+from io import BytesIO
+from typing import List
+
+router = APIRouter()
+
+@router.post("/batch")
+async def compress_batch(files: list[UploadFile]):
+    if not files:
+        file_data.append((f.filename, await f.read()))
+
+    task_id = await compression_queue.add_task(file_data)
+    return {"task_id": task_id}
+
+    task = compression_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(404, "Task not found")
+
+    return {
+        "status": task.status,
+        "progress": task.progress,
+        "file_progress": task.file_progress,
+        "error": task.error,
+        "files": list(task.results.keys()),
+        "compressed_sizes": task.compressed_sizes,
+        "name_map": task.name_map,
+    }
+
+
+@router.get("/download/{task_id}")
+async def download_zip(task_id: str):
+    task = compression_queue.get_task(task_id)
+    if not task:
+        raise HTTPException(404, "Task not found")
+
+    if task.status != TaskStatus.DONE:
+        raise HTTPException(400, "Task not finished")
+
+    return StreamingResponse(
+        BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=compressed_{task_id}.zip"}
+    )
+
+
+@router.post("/batch-webp")
+async def compress_batch_webp(files: List[UploadFile]):
+    file_data = [(f.filename, await f.read()) for f in files]
+    task_id = await compression_queue.add_task(file_data, mode="webp")
+    return {"task_id": task_id}

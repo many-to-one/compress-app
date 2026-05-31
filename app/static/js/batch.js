@@ -1,89 +1,172 @@
-let currentMode = "compress"; // or "webp"
+let currentMode = "compress";
+
+const finishedTasks = {};
+const MAX_PARALLEL = 4;
+
+// =========================
+// MODE
+// =========================
 
 document.getElementById("convertWebpBtn").onclick = () => {
     currentMode = "webp";
     document.getElementById("uploadForm").requestSubmit();
 };
 
+// =========================
+// RENDER FILES
+// =========================
 
-// --- HELPERS ---
 function renderFiles(files) {
+
     const container = document.getElementById("fileProgressContainer");
+
     container.innerHTML = "";
 
     for (let f of files) {
 
-        const url = f.type.startsWith("image/") ? URL.createObjectURL(f) : null;
+        const safeId = createSafeId(f.name);
+
+        const url = f.type.startsWith("image/")
+            ? URL.createObjectURL(f)
+            : null;
 
         container.innerHTML += `
-            <div class="file-block" id="file-${f.name}">
-                ${url ? `<img class="file-thumb" src="${url}" alt="">` : ""}
-                <div class="file-size" id="size-${f.name}"></div>
+            <div class="file-block" id="file-${safeId}">
+
+                ${url
+                    ? `<img class="file-thumb" src="${url}" alt="">`
+                    : ""
+                }
+
+                <div class="file-size" id="size-${safeId}"></div>
 
                 <div class="file-b">
-                    <div class="file-name">${f.name}</div>
+
+                    <div class="file-name">
+                        ${f.name}
+                    </div>
 
                     <div class="progress-wrapper">
 
-                        <div class="progress-bar neon-bar" data-filename="${f.name}">
-                            <div class="progress-fill neon-fill" style="width:0%"></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:0%"></div>
                         </div>
 
-                        <div class="progress-label">0%</div>
+                        <div class="progress-label">
+                            0%
+                        </div>
+
                     </div>
 
                 </div>
+
             </div>
         `;
     }
 }
 
-// --- INPUT CHANGE ---
-document.getElementById("files").onchange = (e) => {
-    const files = e.target.files;
-    renderFiles(files);
-    updateFileSizes(files)
-};
+function createSafeId(name) {
+    return btoa(unescape(encodeURIComponent(name)))
+        .replace(/=/g, "");
+}
 
 function updateFileSizes(files) {
+
     for (let f of files) {
+
+        const safeId = createSafeId(f.name);
+
         const sizeMB = (f.size / 1024 / 1024).toFixed(2);
-        const el = document.getElementById(`size-${f.name}`);
-        if (el) el.textContent = `${sizeMB} MB`;
+
+        const el = document.getElementById(`size-${safeId}`);
+
+        if (el) {
+            el.textContent = `${sizeMB} MB`;
+        }
     }
 }
 
+// =========================
+// INPUT
+// =========================
+
+document.getElementById("files").onchange = (e) => {
+
+    const files = e.target.files;
+
+    renderFiles(files);
+
+    updateFileSizes(files);
+};
+
+// =========================
 // DROP ZONE
+// =========================
 
 const dropZone = document.getElementById("dropZone");
 
-// zapobiegamy domyślnym zachowaniom
-["dragenter", "dragover", "dragleave", "drop"].forEach(ev =>
+["dragenter", "dragover", "dragleave", "drop"].forEach(ev => {
+
     dropZone.addEventListener(ev, (e) => {
         e.preventDefault();
         e.stopPropagation();
-    })
-);
-
-// efekt neon glow przy przeciąganiu
-["dragenter", "dragover"].forEach(ev =>
-    dropZone.addEventListener(ev, () => dropZone.classList.add("dragover"))
-);
-
-["dragleave", "drop"].forEach(ev =>
-    dropZone.addEventListener(ev, () => dropZone.classList.remove("dragover"))
-);
-
-// obsługa upuszczania plików
-dropZone.addEventListener("drop", (e) => {
-    const dtFiles = e.dataTransfer.files;
-    document.getElementById("files").files = dtFiles;
-    renderFiles(dtFiles); // Twoja funkcja generująca listę plików
+    });
 });
 
+["dragenter", "dragover"].forEach(ev => {
+
+    dropZone.addEventListener(ev, () => {
+        dropZone.classList.add("dragover");
+    });
+});
+
+["dragleave", "drop"].forEach(ev => {
+
+    dropZone.addEventListener(ev, () => {
+        dropZone.classList.remove("dragover");
+    });
+});
+
+// dropZone.addEventListener("drop", (e) => {
+
+//     const dtFiles = e.dataTransfer.files;
+
+//     document.getElementById("files").files = dtFiles;
+
+//     renderFiles(dtFiles);
+
+//     updateFileSizes(dtFiles);
+
+//     document.getElementById("fileProgressContainer")
+//         .scrollIntoView({
+//             behavior: "smooth"
+//         });
+// });
+
+
 dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const dtFiles = e.dataTransfer.files;
+
+    // --- LIMIT: max 20 plików ---
+    if (dtFiles.length > 20) {
+        showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
+        return;
+    }
+
+    // --- LIMIT: max 7 MB ---
+    for (const f of dtFiles) {
+        const sizeMB = f.size / 1024 / 1024;
+        if (sizeMB > 7) {
+            showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
+            return;
+        }
+    }
+
     document.getElementById("files").files = dtFiles;
+
     renderFiles(dtFiles);
     updateFileSizes(dtFiles);
 
@@ -94,411 +177,346 @@ dropZone.addEventListener("drop", (e) => {
 
 
 
-// --- RIPPLE ON CLICK ---
-document.addEventListener("click", (e) => {
-    const bar = e.target.closest(".progress-bar");
-    if (!bar) return;
 
-    const rect = bar.getBoundingClientRect();
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = ripple.style.height = size + "px";
-    ripple.style.left = (e.clientX - rect.left - size / 2) + "px";
-    ripple.style.top = (e.clientY - rect.top - size / 2) + "px";
+// =========================
+// SUBMIT
+// =========================
 
-    bar.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 600);
-});
-
-
-// --- FORM SUBMIT ---
 document.getElementById("uploadForm").onsubmit = async (e) => {
+
     e.preventDefault();
 
-    const files = document.getElementById("files").files;
-    const formData = new FormData();
+    const files = Array.from(
+        document.getElementById("files").files
+    );
 
-    const statusDiv = document.getElementById("status");
-    statusDiv.innerHTML = "Starting...";
+    if (!files.length) return;
 
-    const localProgress = {};
+    document.getElementById("status").innerHTML =
+        `<p class="neon-text">Processing ${files.length} files...</p>`;
 
-    for (let f of files) {
-        formData.append("files", f);
-        localProgress[f.name] = 0;
-    }
-
-    const endpoint = currentMode === "webp"
-        ? "/compress/batch-webp"
-        : "/compress/batch";
-
-    const res = await fetch(endpoint, {
-        method: "POST",
-        body: formData
-    });
-
-    // const res = await fetch("/compress/batch", {
-    //     method: "POST",
-    //     body: formData
-    // });
-
-    const data = await res.json();
-    const taskId = data.task_id;
-
-    startLocalProgress(localProgress);
-    checkStatus(taskId, localProgress);
+    await processQueue(files);
 };
 
+// =========================
+// CONCURRENCY QUEUE
+// =========================
 
-// --- AUTO PROGRESS (to 90%) ---
-function startLocalProgress(localProgress) {
-    setInterval(() => {
-        for (const filename in localProgress) {
-            if (localProgress[filename] < 90) {
-                localProgress[filename] += 1.5;
-                updateProgressUI(filename, Math.floor(localProgress[filename]));
-            }
-        }
-    }, 500);
+async function processQueue(files) {
+
+    const queue = [...files];
+
+    const workers = [];
+
+    for (let i = 0; i < MAX_PARALLEL; i++) {
+        workers.push(worker(queue));
+    }
+
+    await Promise.all(workers);
 }
 
+async function worker(queue) {
 
-// --- POLLING BACKEND ---
-async function checkStatus(taskId, localProgress) {
-    const statusDiv = document.getElementById("status");
+    while (queue.length > 0) {
 
-    const interval = setInterval(async () => {
-        const res = await fetch(`/compress/status/${taskId}`);
-        console.log("checkStatus", res)
+        const file = queue.shift();
+
+        if (!file) return;
+
+        await processSingleFile(file);
+    }
+}
+
+// =========================
+// SINGLE FILE
+// =========================
+
+async function processSingleFile(file) {
+
+    const filename = file.name;
+
+    const safeId = createSafeId(filename);
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const endpoint =
+        currentMode === "webp"
+            ? "/compress/batch-webp"
+            : "/compress/batch";
+
+    try {
+
+        const res = await fetch(endpoint, {
+            method: "POST",
+            body: formData
+        });
+
         const data = await res.json();
 
-        statusDiv.innerHTML = `
-            <p>Status: ${data.status}</p>
-            <p>Overall: ${data.progress}%</p>
-        `;
+        await checkSingleFileStatus(
+            data.task_id,
+            filename,
+            file.size
+        );
 
-        if (data.file_progress) {
-            for (const [filename, prog] of Object.entries(data.file_progress)) {
-                if (prog > localProgress[filename]) {
-                    localProgress[filename] = prog;
-                    updateProgressUI(filename, prog);
-                }
-            }
-        }
+    } catch (err) {
 
+        console.error(err);
 
-        if (data.status === "done") {
-            clearInterval(interval);
-
-            for (const filename in localProgress) {
-                updateProgressUI(filename, 100);
-
-                const block = document.getElementById(`file-${filename}`);
-                if (block) block.classList.remove("active");
-
-                // rozmiar oryginalny
-                const sizeDiv = document.getElementById(`size-${filename}`);
-                const originalMB = parseFloat(sizeDiv.textContent);
-
-                // rozmiar po kompresji z backendu
-                const compressedBytes = data.compressed_sizes[filename];
-                const compressedMB = (compressedBytes / 1024 / 1024).toFixed(2);
-
-                const reduction = (((originalMB - compressedMB) / originalMB) * 100).toFixed(0);
-
-                sizeDiv.textContent = `${originalMB} MB → ${compressedMB} MB (${reduction}% ↓)`;
-            }
-
-            // tylko jeden przycisk
-            statusDiv.innerHTML = `
-                <a class="btn" href="/compress/download/${taskId}">Download ZIP</a>
-            `;
-        }
-
-    }, 500);
+        updateErrorUI(safeId);
+    }
 }
 
+// =========================
+// STATUS POLLING
+// =========================
 
-// --- UPDATE UI + SUCCESS FLASH ---
-function updateProgressUI(filename, value, isFinal = false) {
-    const block = document.getElementById(`file-${filename}`);
+async function checkSingleFileStatus(
+    taskId,
+    filename,
+    originalSize
+) {
+
+    const safeId = createSafeId(filename);
+
+    return new Promise((resolve) => {
+
+        const interval = setInterval(async () => {
+
+            try {
+
+                const res = await fetch(
+                    `/compress/status/${taskId}`
+                );
+
+                const data = await res.json();
+
+                updateProgressUI(
+                    safeId,
+                    data.progress || 0
+                );
+
+                if (data.status === "done") {
+
+                    clearInterval(interval);
+
+                    const compressedBytes =
+                        data.compressed_size;
+
+                    const reduction =
+                        (
+                            (
+                                originalSize -
+                                compressedBytes
+                            ) /
+                            originalSize
+                        ) * 100;
+
+                    const sizeDiv =
+                        document.getElementById(
+                            `size-${safeId}`
+                        );
+
+                    const originalMB = (originalSize / 1024 / 1024).toFixed(2); //+
+                    const compressedMB = (compressedBytes / 1024 / 1024).toFixed(2);//+
+
+                    // sizeDiv.innerHTML = `
+                    //     <span class="reduction-pct">
+                    //         -${reduction.toFixed(0)}%
+                    //     </span>
+                    //     |
+                    //     ${(compressedBytes / 1024 / 1024).toFixed(2)} MB
+                    // `;
+
+                    sizeDiv.innerHTML = `
+                        <span class="original-size">${originalMB} MB</span>
+                        →
+                        <span class="reduction-pct">-${reduction.toFixed(0)}%</span>
+                        |
+                        <span class="compressed-size">${compressedMB} MB</span>
+                    `;
+
+                    showDownloadButton(
+                        safeId,
+                        taskId,
+                        filename
+                    );
+
+                    finishedTasks[filename] = taskId;
+
+                    updateProgressUI(
+                        safeId,
+                        100,
+                        true
+                    );
+
+                    checkGlobalCompletion();
+
+                    resolve();
+                }
+
+            } catch (err) {
+
+                console.error(err);
+
+                clearInterval(interval);
+
+                updateErrorUI(safeId);
+
+                resolve();
+            }
+
+        }, 2000);
+    });
+}
+
+// =========================
+// DOWNLOAD BUTTON
+// =========================
+
+function showDownloadButton(
+    safeId,
+    taskId,
+    filename
+) {
+
+    const block =
+        document.getElementById(`file-${safeId}`);
+
+    const actionArea =
+        block.querySelector(".file-b");
+
+    const dlBtn = document.createElement("a");
+
+    dlBtn.href = `/compress/file/${taskId}`;
+
+    dlBtn.className = "btn-mini";
+
+    dlBtn.innerHTML = "Download";
+
+    dlBtn.download = filename;
+
+    actionArea.prepend(dlBtn);
+}
+
+// =========================
+// ZIP
+// =========================
+
+function checkGlobalCompletion() {
+
+    const totalFiles =
+        document.getElementById("files").files.length;
+
+    const completed =
+        Object.keys(finishedTasks).length;
+
+    if (totalFiles !== completed) return;
+
+    const statusDiv =
+        document.getElementById("status");
+
+    const zipBtn = document.createElement("button");
+
+    zipBtn.className = "btn success-btn";
+
+    zipBtn.innerHTML = "Download All as ZIP";
+
+    zipBtn.onclick = async () => {
+
+        const ids = Object.values(finishedTasks);
+
+        const query = ids.join(",");
+
+        window.location.href =
+            `/compress/download-multi?tasks=${query}`;
+    };
+
+    statusDiv.innerHTML = "";
+
+    statusDiv.appendChild(zipBtn);
+}
+
+// =========================
+// UI
+// =========================
+
+function updateProgressUI(
+    safeId,
+    value,
+    isFinal = false
+) {
+
+    const block =
+        document.getElementById(`file-${safeId}`);
+
     if (!block) return;
 
-    const fill = block.querySelector(".progress-fill");
-    const label = block.querySelector(".progress-label");
+    const fill =
+        block.querySelector(".progress-fill");
+
+    const label =
+        block.querySelector(".progress-label");
 
     fill.style.width = value + "%";
-    label.textContent = value + "%";
 
-    if (value === 100 || isFinal) {
+    label.textContent =
+        Math.floor(value) + "%";
+
+    if (isFinal) {
         block.classList.add("success");
     }
 }
 
+function updateErrorUI(safeId) {
 
+    const block =
+        document.getElementById(`file-${safeId}`);
 
+    if (!block) return;
 
+    block.classList.add("error");
+}
 
-// // COMPRESS WITH JS ONLY
-// // ---------------------------------------------
-// // GLOBAL MODE (compress | webp)
-// // ---------------------------------------------
-// let currentMode = "compress";
-// let localProgressInterval = null;
 
-// document.getElementById("convertWebpBtn").onclick = () => {
-//     currentMode = "webp";
-//     document.getElementById("uploadForm").requestSubmit();
-// };
 
-// document.getElementById("uploadForm").onsubmit = () => {
-//     currentMode = "compress";
-// };
+// =========================
+// WARNING MODAL
+// =========================
+function showWarning(i18nKey, dynamicText = "") {
+    const modal = document.getElementById("warningModal");
+    const msgTooMany = document.getElementById("warningTooMany");
+    const msgTooBig = document.getElementById("warningTooBig");
+    const btn = document.getElementById("warningClose");
 
-// // ---------------------------------------------
-// // RENDER FILES
-// // ---------------------------------------------
-// function renderFiles(files) {
-//     const container = document.getElementById("fileProgressContainer");
-//     container.innerHTML = "";
+    // Reset widoczności
+    msgTooMany.classList.add("hidden");
+    msgTooBig.classList.add("hidden");
 
-//     for (let f of files) {
-//         const url = f.type.startsWith("image/") ? URL.createObjectURL(f) : null;
+    // Wybór komunikatu
+    if (i18nKey === "warning_too_many_files") {
+        msgTooMany.classList.remove("hidden");
+    }
 
-//         container.innerHTML += `
-//             <div class="file-block" id="file-${f.name}">
-//                 ${url ? `<img class="file-thumb" src="${url}" alt="">` : ""}
+    if (i18nKey === "warning_file_too_big") {
+        msgTooBig.classList.remove("hidden");
 
-//                 <div class="file-b">
-//                     <div class="file-name">${f.name}</div>
-//                     <div class="file-size" id="size-${f.name}"></div>
+        // dynamiczny tekst (np. nazwa pliku)
+        if (dynamicText) {
+            msgTooBig.textContent = dynamicText;
+        }
+    }
 
-//                     <div class="progress-wrapper">
-//                         <div class="progress-bar neon-bar" data-filename="${f.name}">
-//                             <div class="progress-fill neon-fill" style="width:0%"></div>
-//                         </div>
-//                         <div class="progress-label">0%</div>
-//                     </div>
-//                 </div>
-//             </div>
-//         `;
-//     }
-// }
+    // Odśwież tłumaczenia
+    if (typeof applyTranslations === "function") {
+        applyTranslations();
+    }
 
-// // ---------------------------------------------
-// // ORIGINAL FILE SIZES
-// // ---------------------------------------------
-// function updateFileSizes(files) {
-//     for (let f of files) {
-//         const sizeMB = (f.size / 1024 / 1024).toFixed(2);
-//         const el = document.getElementById(`size-${f.name}`);
-//         if (el) el.textContent = `${sizeMB} MB`;
-//     }
-// }
+    modal.classList.remove("hidden");
 
-// // ---------------------------------------------
-// // INPUT CHANGE
-// // ---------------------------------------------
-// document.getElementById("files").onchange = (e) => {
-//     const files = e.target.files;
-//     renderFiles(files);
-//     updateFileSizes(files);
-// };
-
-// // ---------------------------------------------
-// // DROP ZONE
-// // ---------------------------------------------
-// const dropZone = document.getElementById("dropZone");
-
-// ["dragenter", "dragover", "dragleave", "drop"].forEach(ev =>
-//     dropZone.addEventListener(ev, (e) => {
-//         e.preventDefault();
-//         e.stopPropagation();
-//     })
-// );
-
-// ["dragenter", "dragover"].forEach(ev =>
-//     dropZone.addEventListener(ev, () => dropZone.classList.add("dragover"))
-// );
-
-// ["dragleave", "drop"].forEach(ev =>
-//     dropZone.addEventListener(ev, () => dropZone.classList.remove("dragover"))
-// );
-
-// dropZone.addEventListener("drop", (e) => {
-//     const dtFiles = e.dataTransfer.files;
-//     document.getElementById("files").files = dtFiles;
-//     renderFiles(dtFiles);
-//     updateFileSizes(dtFiles);
-
-//     document.getElementById("fileProgressContainer").scrollIntoView({
-//         behavior: "smooth"
-//     });
-// });
-
-// // ---------------------------------------------
-// // RIPPLE EFFECT
-// // ---------------------------------------------
-// document.addEventListener("click", (e) => {
-//     const bar = e.target.closest(".progress-bar");
-//     if (!bar) return;
-
-//     const rect = bar.getBoundingClientRect();
-//     const ripple = document.createElement("span");
-//     ripple.className = "ripple";
-//     const size = Math.max(rect.width, rect.height);
-//     ripple.style.width = ripple.style.height = size + "px";
-//     ripple.style.left = (e.clientX - rect.left - size / 2) + "px";
-//     ripple.style.top = (e.clientY - rect.top - size / 2) + "px";
-
-//     bar.appendChild(ripple);
-//     setTimeout(() => ripple.remove(), 600);
-// });
-
-// // ---------------------------------------------
-// // FORM SUBMIT
-// // ---------------------------------------------
-// document.getElementById("uploadForm").onsubmit = async (e) => {
-//     e.preventDefault();
-
-//     const files = document.getElementById("files").files;
-//     const formData = new FormData();
-
-//     const statusDiv = document.getElementById("status");
-//     statusDiv.innerHTML = "Starting...";
-
-//     const localProgress = {};
-
-//     for (let f of files) {
-//         formData.append("files", f);
-//         localProgress[f.name] = 0;
-//     }
-
-//     const endpoint = currentMode === "webp"
-//         ? "/compress/batch-webp"
-//         : "/compress/batch";
-
-//     const res = await fetch(endpoint, {
-//         method: "POST",
-//         body: formData
-//     });
-
-//     if (res.status === 401) {
-//         window.location.href = "/login_page";
-//         return;
-//     }
-
-
-//     const data = await res.json();
-//     const taskId = data.task_id;
-
-//     startLocalProgress(localProgress);
-//     checkStatus(taskId, localProgress);
-// };
-
-// // ---------------------------------------------
-// // AUTO PROGRESS (to 90%)
-// // ---------------------------------------------
-// function startLocalProgress(localProgress) {
-    
-//     // 🔥 start animacji muszli
-//     startShellSpin();
-
-
-//     localProgressInterval = setInterval(() => {
-//         for (const filename in localProgress) {
-//             if (localProgress[filename] < 90) {
-//                 localProgress[filename] += 1.5;
-//                 updateProgressUI(filename, Math.floor(localProgress[filename]));
-//             }
-//         }
-//     }, 500);
-// }
-
-// // ---------------------------------------------
-// // POLLING BACKEND
-// // ---------------------------------------------
-// async function checkStatus(taskId, localProgress) {
-//     const statusDiv = document.getElementById("status");
-
-//     const interval = setInterval(async () => {
-//         const res = await fetch(`/compress/status/${taskId}`);
-//         const data = await res.json();
-
-//         statusDiv.innerHTML = `
-//             <p>Status: ${data.status}</p>
-//             <p>Overall: ${data.progress}%</p>
-//         `;
-
-//         if (data.file_progress) {
-//             for (const [filename, prog] of Object.entries(data.file_progress)) {
-//                 updateProgressUI(filename, prog);
-//             }
-//         }
-
-//         if (data.status === "done") {
-//             clearInterval(localProgressInterval);
-
-//             // Wyłączamy animację muszli
-//             stopShellSpin();
-
-//             for (const originalName in data.name_map) {
-//                 const newName = data.name_map[originalName];
-
-//                 updateProgressUI(originalName, 100);
-
-//                 const block = document.getElementById(`file-${originalName}`);
-//                 if (block) block.classList.remove("active");
-
-//                 const sizeDiv = document.getElementById(`size-${originalName}`);
-//                 const originalMB = parseFloat(sizeDiv.textContent);
-
-//                 const compressedBytes = data.compressed_sizes[newName];
-//                 const compressedMB = (compressedBytes / 1024 / 1024).toFixed(2);
-
-//                 const reduction = (((originalMB - compressedMB) / originalMB) * 100).toFixed(0);
-
-//                 sizeDiv.textContent = `${originalMB} MB → ${compressedMB} MB (${reduction}% ↓)`;
-//             }
-
-//             statusDiv.innerHTML = `
-//                 <a class="btn" href="/compress/download/${taskId}">Download ZIP</a>
-//             `;
-//         }
-
-//     }, 500);
-// }
-
-// // ---------------------------------------------
-// // UPDATE UI + SUCCESS FLASH
-// // ---------------------------------------------
-// function updateProgressUI(filename, value, isFinal = false) {
-//     const block = document.getElementById(`file-${filename}`);
-//     if (!block) return;
-
-//     const fill = block.querySelector(".progress-fill");
-//     const label = block.querySelector(".progress-label");
-
-//     fill.style.width = value + "%";
-//     label.textContent = value + "%";
-
-//     if (value === 100 || isFinal) {
-//         block.classList.add("success");
-//     }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    btn.onclick = () => {
+        modal.classList.add("hidden");
+    };
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin – User</title>
+    <link rel="stylesheet" href="/static/css/admin.css"> 
+</head>
+<body>
+    <h1>Użytkownik: {{ user.email }}</h1>
+
+    <p><strong>ID:</strong> {{ user.id }}</p>
+    <p><strong>Zablokowany:</strong> {{ "TAK" if user.is_blocked else "NIE" }}</p>
+
+    {% if not user.is_blocked %}
+        <a href="/admin/block/{{ user.id }}">Zablokuj użytkownika</a>
+    {% else %}
+        <a href="/admin/unblock/{{ user.id }}">Odblokuj użytkownika</a>
+    {% endif %}
+
+    <h2>IP użytkownika</h2>
+    <ul>
+        {% for ip in user.ips %}
+            <li>
+                {{ ip }}
+                {% if ip not in user.blocked_ips %}
+                    <a href="/admin/block_ip/{{ user.id }}/{{ ip }}">Zablokuj IP</a>
+                {% else %}
+                    <a href="/admin/unblock_ip/{{ user.id }}/{{ ip }}">Odblokuj IP</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Zablokowane IP</h2>
+    <ul>
+        {% for ip in user.blocked_ips %}
+            <li>{{ ip }}</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="/admin/users">← Powrót</a></p>
+</body>
+</html>

@@ -64,8 +64,16 @@
   "register_password_placeholder": "••••••••",
   "register_button": "Zarejestruj się",
   "register_have_account": "Masz już konto?",
-  "register_login": "Zaloguj się"
+  "register_login": "Zaloguj się",
+
+  "warning_title": "Ostrzeżenie",
+  "warning_message": "Coś poszło nie tak.",
+  "warning_ok": "OK",
+  "warning_too_many_files": "Możesz przesłać maksymalnie 20 plików.",
+  "warning_file_too_big": "Plik jest większy niż 7 MB.",
+  "vpn_detected": "Wykryto VPN. Wyłącz VPN, aby korzystać z aplikacji."
 }
+
 
 
 

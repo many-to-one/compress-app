@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
 from schemas.user import User, UserCreate, Token, LoginSchema, ResetPasswordSchema, ForgotPasswordSchema
-from crud.user import get_user_by_email, create_user
+from crud.user import get_user_by_email, create_user, get_current_user, admin_required
 from core.security import verify_password, create_access_token, create_reset_token
 from core.config import settings
 
@@ -57,7 +57,7 @@ async def login(user: LoginSchema, db: AsyncSession = Depends(get_db)):
     if not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(400, "Invalid credentials")
 
-    token = create_access_token({"sub": db_user.email})
+    token = create_access_token({"sub": str(db_user.id)})
 
     response = JSONResponse({
         "success": True
@@ -158,3 +158,38 @@ async def forgot_password(
     #         smtp.send_message(msg)
 
     #     print(f"Email resetujący wysłany do {user.email}")
+
+
+from sqlalchemy import select # upewnij się, że masz ten import
+
+from typing import Any
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+@router.post("/admin/block_user/{user_id}", response_model=None)
+async def block_user(
+    user_id: int, 
+    admin: Any = Depends(admin_required), # Zmieniamy User na Any
+    db: Any = Depends(get_db)             # Zmieniamy AsyncSession na Any
+) -> Any:                                 # Dodajemy jawnie -> Any
+    """
+    Używamy Any w parametrach, aby Pydantic nie próbował 
+    budować modelu walidacyjnego z klas SQLAlchemy.
+    """
+    # Rzutowanie typu dla edytora (opcjonalne, dla podpowiadania składni)
+    db_session: AsyncSession = db 
+
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    user.is_blocked = True
+    if hasattr(user, 'ips') and user.ips:
+        user.blocked_ips = list(set(user.ips))
+    
+    db_session.add(user)
+    await db_session.commit()
+
+    return {"status": "blocked", "user_id": user_id}

@@ -62,8 +62,16 @@
   "register_password_placeholder": "••••••••",
   "register_button": "Register",
   "register_have_account": "Already have an account?",
-  "register_login": "Login"
+  "register_login": "Login",
+
+  "warning_title": "Warning",
+  "warning_message": "Something went wrong.",
+  "warning_ok": "OK",
+  "warning_too_many_files": "You can upload up to 20 files.",
+  "warning_file_too_big": "The file is larger than 7 MB.",
+  "vpn_detected": "VPN detected. Disable VPN to use the app."
 }
+
 
 
 

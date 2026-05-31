@@ -1,0 +1,16 @@
+alembic revision --autogenerate -m "message"
+alembic upgrade head
+
+# how to connect to db via docker:
+docker exec -it container_name psql -U my_user -d my_db
+
+# odblokować IP:
+UPDATE users
+SET blocked_ips = array_remove(blocked_ips, '***.24.0.1')
+WHERE id = 1; (lub WHERE email = 'xxx@gmail.com';)
+
+# odblokować wszystkie IP na raz:
+UPDATE users SET blocked_ips = '{}' WHERE email = 'xxx@gmail.com';
+
+# odblokować użytkownika:
+UPDATE users SET is_blocked = FALSE WHERE email = 'xxx@gmail.com';
