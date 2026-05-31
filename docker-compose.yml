@@ -43,7 +43,7 @@ services:
     image: redis:7
     container_name: redis_container
     ports:
-      - "6400:6379" 
+      - "${REDIS_PORT}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
