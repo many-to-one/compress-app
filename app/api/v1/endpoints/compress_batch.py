@@ -85,8 +85,11 @@ from io import BytesIO
 
 import zipfile
 
-from services.queue import compression_queue
+# from services.queue import compression_queue
 from services.queue import TaskStatus
+import services.queue_manager as compression_queue
+
+
 
 router = APIRouter()
 
@@ -102,7 +105,7 @@ async def compress_batch(file: UploadFile):
 
     content = await file.read()
 
-    task_id = await compression_queue.add_task(
+    task_id = await queue_holder.compression_queue.add_task(
         [(file.filename, content)]
     )
 
@@ -117,7 +120,7 @@ async def compress_batch(file: UploadFile):
 @router.get("/status/{task_id}")
 async def get_task_status(task_id: str):
 
-    task = compression_queue.get_task(task_id)
+    task = queue_holder.compression_queue.get_task(task_id)
 
     if not task:
         raise HTTPException(404, "Task not found")
@@ -142,7 +145,7 @@ async def get_task_status(task_id: str):
 @router.get("/file/{task_id}")
 async def download_single_file(task_id: str):
 
-    task = compression_queue.get_task(task_id)
+    task = queue_holder.compression_queue.get_task(task_id)
 
     if not task:
         raise HTTPException(404, "Task not found")

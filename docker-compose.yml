@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       # -U to użytkownik, -d to nazwa bazy (pobierane ze zmiennych)
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,7 +38,7 @@ services:
         condition: service_healthy
     # command: uvicorn main:app --host ${UVICORN_HOST} --port ${UVICORN_PORT} --reload
     command: gunicorn main:app
-      --workers 4
+      --workers 1
       --worker-class uvicorn.workers.UvicornWorker
       --bind ${UVICORN_HOST}:${UVICORN_PORT}
       --timeout 120

@@ -94,4 +94,4 @@ class CompressionQueue:
         return buffer.getvalue()
 
 
-compression_queue = CompressionQueue()
+# compression_queue = CompressionQueue()

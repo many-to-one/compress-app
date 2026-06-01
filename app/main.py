@@ -11,7 +11,7 @@ from api.v1.endpoints import auth, admin, compress_batch
 from crud.user import get_current_user
 from db.session import get_db, AsyncSessionLocal
 from core.config import settings
-from services.queue import compression_queue
+# from services.queue import compression_queue
 
 import asyncio
 import aioredis
@@ -420,12 +420,12 @@ app.include_router(
 # STARTUP
 # ============================
 
-@app.on_event("startup")
-async def start_worker():
+# @app.on_event("startup")
+# async def start_worker():
 
-    asyncio.create_task(
-        compression_queue.worker()
-    )
+#     asyncio.create_task(
+#         compression_queue.worker()
+#     )
 
 
 # ============================
@@ -483,4 +483,21 @@ async def forgot_password_page(request: Request):
             "request": request
         }
     )
+
+
+
+import asyncio
+import services.queue_manager as queue_holder
+from services.queue import CompressionQueue
+
+
+@app.on_event("startup")
+async def start_worker():
+    # 1. Utwórz kolejkę
+    queue_holder.compression_queue = CompressionQueue()
+
+    # 2. Uruchom worker w tle
+    asyncio.create_task(queue_holder.compression_queue.worker())
+
+
 
