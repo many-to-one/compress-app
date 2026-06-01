@@ -52,6 +52,7 @@
   "login_forgot": "Forgot password",
   "login_no_account": "No account?",
   "login_register": "Register",
+  "login_google": "Login with Google",
 
   "register_badge": "POST /register",
   "register_title": "Create Account",

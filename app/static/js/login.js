@@ -35,6 +35,9 @@ form.addEventListener("submit", async (e) => {
 });
 
 
+function loginWithGoogle() {
+    window.location.href = "/auth/google";
+}
 
 
 

@@ -376,30 +376,76 @@ async function checkSingleFileStatus(
 // DOWNLOAD BUTTON
 // =========================
 
-function showDownloadButton(
-    safeId,
-    taskId,
-    filename
-) {
+// function showDownloadButton(
+//     safeId,
+//     taskId,
+//     filename
+// ) {
 
-    const block =
-        document.getElementById(`file-${safeId}`);
+//     const block =
+//         document.getElementById(`file-${safeId}`);
 
-    const actionArea =
-        block.querySelector(".file-b");
+//     const actionArea =
+//         block.querySelector(".file-b");
 
-    const dlBtn = document.createElement("a");
+//     const dlBtn = document.createElement("a");
 
-    dlBtn.href = `/compress/file/${taskId}`;
+//     dlBtn.href = `/compress/file/${taskId}`;
 
+//     dlBtn.className = "btn-mini";
+
+//     dlBtn.innerHTML = "Download";
+
+//     dlBtn.download = filename;
+
+//     actionArea.prepend(dlBtn);
+// }
+
+function showDownloadButton(safeId, taskId, filename) {
+    const block = document.getElementById(`file-${safeId}`);
+    const actionArea = block.querySelector(".file-b");
+
+    const dlBtn = document.createElement("button");
     dlBtn.className = "btn-mini";
-
     dlBtn.innerHTML = "Download";
 
-    dlBtn.download = filename;
+    dlBtn.onclick = () => {
+        const url = `/compress/file/${taskId}`;
+        shareFileFromUrl(url, filename);
+    };
 
     actionArea.prepend(dlBtn);
 }
+
+
+
+// =========================
+// SHARE (Web Share API with fallback) for mobile
+// =========================
+async function shareFileFromUrl(url, filename) {
+    try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const file = new File([blob], filename, { type: blob.type });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: "Skompresowany plik",
+                text: "Twoje zdjęcie jest gotowe"
+            });
+        } else {
+            // fallback: normalne pobieranie
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
+    } catch (err) {
+        console.error("Share failed:", err);
+    }
+}
+
 
 // =========================
 // ZIP
@@ -520,3 +566,24 @@ function showWarning(i18nKey, dynamicText = "") {
         modal.classList.add("hidden");
     };
 }
+
+
+
+
+
+// function connectGoogleDrive() {
+//     window.location.href = "/auth/google-drive";
+// }
+
+
+// function openPicker(oauthToken) {
+//     gapi.load("picker", () => {
+//         const picker = new google.picker.PickerBuilder()
+//             .addView(google.picker.ViewId.DOCS_IMAGES)
+//             .setOAuthToken(oauthToken)
+//             .setDeveloperKey("TWÓJ_API_KEY")
+//             .setCallback(pickerCallback)
+//             .build();
+//         picker.setVisible(true);
+//     });
+// }

@@ -379,3 +379,38 @@
     100% { background-position: 0% 50%; }
 }
 
+
+
+/* ... MOBILE ... */
+
+@media (max-width: 768px) {
+    .auth-header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .auth-nav {
+        gap: 15px;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .auth-logo span {
+        font-size: 20px;
+    }
+
+    /* Zmniejszenie switchy na mobile */
+    .neon-switch {
+        width: 60px;
+        height: 30px;
+    }
+    .thumb {
+        width: 22px;
+        height: 22px;
+    }
+    .neon-switch input:checked + .track .thumb {
+        transform: translateX(30px);
+    }
+}

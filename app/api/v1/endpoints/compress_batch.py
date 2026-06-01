@@ -210,3 +210,27 @@ async def download_multiple_files(tasks: str):
             'attachment; filename="compressed_images.zip"'
         }
     )
+
+
+def download_from_drive(access_token, file_id):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+    r = requests.get(url, headers=headers)
+    return r.content
+
+
+def upload_to_drive(access_token, folder_id, filename, file_bytes):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    metadata = {"name": filename, "parents": [folder_id]}
+
+    files = {
+        "metadata": ("metadata", json.dumps(metadata), "application/json"),
+        "file": (filename, file_bytes)
+    }
+
+    r = requests.post(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        headers=headers,
+        files=files
+    )
+    return r.json()

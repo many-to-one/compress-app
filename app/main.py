@@ -173,7 +173,7 @@ async def admin_protect(request: Request, call_next):
 @app.middleware("http")
 async def user_security_middleware(request: Request, call_next):
 
-    print("REGISTERING: user_security_middleware db", request.state.db)
+    # print("REGISTERING: user_security_middleware db", request.state.db)
     db = request.state.db
     user = request.state.user
     ip = request.client.host
