@@ -487,17 +487,17 @@ async def forgot_password_page(request: Request):
 
 
 import asyncio
-import services.queue_manager as queue_holder
+import services.queue_manager as queue_manager
 from services.queue import CompressionQueue
 
 
 @app.on_event("startup")
-async def start_worker():
-    # 1. Utwórz kolejkę
-    queue_holder.compression_queue = CompressionQueue()
+async def startup_event():
+    # Inicjalizacja globalnej kolejki
+    queue_manager.compression_queue = CompressionQueue()
+    # Uruchomienie workera w pętli zdarzeń FastAPI
+    asyncio.create_task(queue_manager.compression_queue.worker())
 
-    # 2. Uruchom worker w tle
-    asyncio.create_task(queue_holder.compression_queue.worker())
 
 
 

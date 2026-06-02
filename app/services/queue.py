@@ -208,18 +208,10 @@ class CompressionQueue:
 
             try:
 
-                coroutines = []
-
+                # Uruchamiamy przetwarzanie plików
                 for file_data in task.files:
-
-                    coroutines.append(
-                        self.process_single_file(
-                            task,
-                            file_data
-                        )
-                    )
-
-                await asyncio.gather(*coroutines)
+                    await self.process_single_file(task, file_data)
+                
 
                 task.progress = 100
 
@@ -239,55 +231,30 @@ class CompressionQueue:
     # SINGLE FILE
     # =====================
 
-    async def process_single_file(
-        self,
-        task,
-        file_data
-    ):
-
+    async def process_single_file(self, task, file_data):
         filename = file_data["filename"]
-
         data = file_data["data"]
+        try:
+            # Uruchamiamy kompresję (CPU bound) w osobnym wątku!
+            compressed = await asyncio.to_thread(auto_compress, data, filename)
+            
+            task.results[filename] = compressed
+            task.compressed_sizes[filename] = len(compressed)
+            task.file_progress[filename] = 100
+            task.completed_files += 1
+            task.progress = int((task.completed_files / task.total_files) * 100)
+        except Exception as e:
+            print(f"Error compressing {filename}: {e}")
 
-        compressed = await auto_compress(
-            data,
-            filename
-        )
-
-        task.results[filename] = compressed
-
-        task.file_progress[filename] = 100
-
-        task.completed_files += 1
-
-        task.progress = int(
-            (
-                task.completed_files
-                / task.total_files
-            ) * 100
-        )
 
     # =====================
     # ZIP
     # =====================
 
-    def build_zip(self, task):
-
+    def build_zip(self, task) -> BytesIO:
         zip_buffer = BytesIO()
-
-        with zipfile.ZipFile(
-            zip_buffer,
-            "w",
-            zipfile.ZIP_DEFLATED
-        ) as zipf:
-
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
             for filename, data in task.results.items():
-
-                zipf.writestr(
-                    filename,
-                    data
-                )
-
+                zipf.writestr(filename, data)
         zip_buffer.seek(0)
-
         return zip_buffer

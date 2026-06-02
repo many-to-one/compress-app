@@ -180,71 +180,76 @@
 
 
 from io import BytesIO
-
-from fastapi import APIRouter
-from fastapi import UploadFile
-from fastapi import File
-from fastapi import HTTPException
-
+from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-
 import services.queue_manager as queue_manager
-
+from services.queue import TaskStatus
 
 router = APIRouter()
 
-
 # =========================
-# CREATE TASK
+# KOMPRESJA (Dostosowane do JS: klucz "file")
 # =========================
-
-@router.post("/compress/batch")
+@router.post("/batch")
 async def compress_batch(
-    files: list[UploadFile] = File(...)
+    file: UploadFile = File(...)  # Zmieniono z files: list na file: UploadFile
 ):
-
-    compression_queue = queue_manager.compression_queue
-
-    if compression_queue is None:
+    q = queue_manager.compression_queue
+    if q is None:
         raise HTTPException(500, "Queue not initialized")
 
-    prepared_files = []
+    # Przygotowujemy listę z jednym plikiem (kolejka i tak przyjmuje listę)
+    content = await file.read()
+    prepared_files = [{
+        "filename": file.filename,
+        "data": content
+    }]
 
-    for file in files:
+    task_id = await q.add_task(prepared_files)
+    return {"task_id": task_id}
 
-        prepared_files.append({
-            "filename": file.filename,
-            "data": await file.read()
-        })
 
-    task_id = await compression_queue.add_task(
-        prepared_files
-    )
+# =========================
+# WEBP (Dodaj, jeśli używasz w JS)
+# =========================
+@router.post("/batch-webp")
+async def compress_batch_webp(
+    file: UploadFile = File(...)
+):
+    q = queue_manager.compression_queue
+    if q is None:
+        raise HTTPException(500, "Queue not initialized")
 
-    print(f"===============Added task {task_id} to the queue")
+    content = await file.read()
+    prepared_files = [{
+        "filename": file.filename,
+        "data": content
+    }]
 
-    return {
-        "task_id": task_id
-    }
+    # Tutaj możesz dodać mode="webp" jeśli Twoja kolejka to obsługuje
+    task_id = await q.add_task(prepared_files) 
+    return {"task_id": task_id}
+
 
 
 # =========================
 # STATUS
 # =========================
-
-@router.get("/compress/status/{task_id}")
+@router.get("/status/{task_id}")
 async def get_status(task_id: str):
-
-    compression_queue = queue_manager.compression_queue
-
-    task = compression_queue.get_task(task_id)
+    q = queue_manager.compression_queue
+    task = q.get_task(task_id)
 
     if not task:
-        raise HTTPException(404)
+        raise HTTPException(404, "Task not found")
+
+    # Obliczamy rozmiar skompresowany dla UI
+    c_size = sum(task.compressed_sizes.values()) if task.compressed_sizes else 0
 
     return {
         "status": task.status,
         "progress": task.progress,
+        "compressed_size": c_size,
         "files": task.file_progress
     }
 
@@ -252,57 +257,33 @@ async def get_status(task_id: str):
 # =========================
 # DOWNLOAD FILE
 # =========================
+@router.get("/file/{task_id}")
+async def download_file(task_id: str):
+    q = queue_manager.compression_queue
+    task = q.get_task(task_id)
 
-@router.get("/compress/download/{task_id}/{filename}")
-async def download_file(
-    task_id: str,
-    filename: str
-):
+    if not task or not task.results:
+        raise HTTPException(404, "File not ready")
 
-    compression_queue = queue_manager.compression_queue
-
-    task = compression_queue.get_task(task_id)
-
-    if not task:
-        raise HTTPException(404)
-
-    if filename not in task.results:
-        raise HTTPException(404)
+    # Pobieramy pierwszy dostępny wynik
+    filename = list(task.results.keys())[0]
+    data = task.results[filename]
 
     return StreamingResponse(
-        BytesIO(task.results[filename]),
+        BytesIO(data),
         media_type="application/octet-stream",
-        headers={
-            "Content-Disposition":
-            f'attachment; filename="{filename}"'
-        }
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
 
-
-# =========================
-# DOWNLOAD ZIP
-# =========================
-
-@router.get("/compress/download-zip/{task_id}")
+@router.get("/download-zip/{task_id}")
 async def download_zip(task_id: str):
+    q = queue_manager.compression_queue
+    task = q.get_task(task_id)
+    if not task or task.status != TaskStatus.DONE: raise HTTPException(400)
 
-    compression_queue = queue_manager.compression_queue
-
-    task = compression_queue.get_task(task_id)
-
-    if not task:
-        raise HTTPException(404)
-
-    if task.status != "done":
-        raise HTTPException(400)
-
-    zip_buffer = compression_queue.build_zip(task)
-
+    zip_buffer = q.build_zip(task)
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={
-            "Content-Disposition":
-            'attachment; filename="compressed.zip"'
-        }
+        headers={"Content-Disposition": 'attachment; filename="compressed.zip"'}
     )

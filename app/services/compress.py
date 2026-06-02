@@ -94,14 +94,15 @@ import os
 # JPEG
 # =========================
 
-def _compress_jpeg_sync(
+def _compress_jpeg(
     input_bytes: bytes,
     quality: int = 75
 ) -> bytes:
 
     try:
         img = Image.open(BytesIO(input_bytes))
-        img = img.convert("RGB")
+        if img.mode != "RGB":
+            img = img.convert("RGB")
 
     except Exception:
         return input_bytes
@@ -152,16 +153,16 @@ def _compress_jpeg_sync(
         return input_bytes
 
 
-async def compress_jpeg(
-    input_bytes: bytes,
-    quality: int = 75
-) -> bytes:
+# async def compress_jpeg(
+#     input_bytes: bytes,
+#     quality: int = 75
+# ) -> bytes:
 
-    return await asyncio.to_thread(
-        _compress_jpeg_sync,
-        input_bytes,
-        quality
-    )
+#     return await asyncio.to_thread(
+#         _compress_jpeg_sync,
+#         input_bytes,
+#         quality
+#     )
 
 
 # =========================
@@ -193,6 +194,8 @@ def auto_compress(
             input_bytes
         )
 
-    raise ValueError(
-        "Unsupported file format"
-    )
+    # raise ValueError(
+    #     "Unsupported file format"
+    # )
+
+    return input_bytes
