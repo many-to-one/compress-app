@@ -1,4 +1,5 @@
 # FILE: services/compress.py
+import asyncio
 import io
 from io import BytesIO
 from PIL import Image
@@ -51,53 +52,6 @@ def compress_png(input_bytes: bytes, min_quality: int = 65, max_quality: int = 8
 
 
 
-# === mozjpeg ===
-
-
-# def compress_jpeg(input_bytes: bytes, quality: int = 75) -> bytes:
-#     try:
-#         img = Image.open(BytesIO(input_bytes))
-#         img = img.convert("RGB")
-#         # print("===compress_jpeg===", img)
-#     except Exception as e:
-#         print("Błąd otwierania obrazu:", e)
-#         return input_bytes
-
-#     ppm_buffer = BytesIO()
-#     img.save(ppm_buffer, format="PPM")
-#     ppm_data = ppm_buffer.getvalue()
-#     # print("===ppm_data===", ppm_data)
-
-#     cmd = [
-#         "cjpeg",
-#         "-quality", str(quality),          # Zmniejszenie z 85 na 75 (często złoty środek)
-#         "-quant-table", "2",       # Najlepsze tablice dla MozJPEG
-#         "-optimize",               # Optymalizacja (jeśli nie używasz -arithmetic)
-#         "-progressive",            # Progresywne wyświetlanie
-#         "-dct", "float",           # Najdokładniejsza metoda obliczeń
-#         "-sample", "2x2"           # Subsampling 4:2:0 (oszczędność na kolorach niewidoczna dla oka)
-#     ]
-
-#     try:
-#         process = subprocess.Popen(
-#             cmd,
-#             stdin=subprocess.PIPE,
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.PIPE
-#         )
-#         output, stderr = process.communicate(ppm_data)
-
-#         if process.returncode != 0:
-#             print("Błąd cjpeg:", stderr.decode())
-#             return input_bytes  # fallback
-
-#         # print("===OUTPUT===", output)
-#         return output
-
-#     except Exception as e:
-#         print("Wyjątek w cjpeg:", e)
-#         return input_bytes
-
 
 
 
@@ -114,19 +68,7 @@ def compress_webp(input_bytes: bytes) -> bytes:
     return buffer.getvalue()
 
 
-# def auto_compress(input_bytes: bytes, filename: str) -> bytes:
-#     ext = filename.lower().split(".")[-1]
 
-#     print("===auto_compress===", ext)
-
-#     if ext in ["png"]:
-#         return compress_png(input_bytes)
-#     elif ext in ["jpg", "jpeg"]:
-#         return compress_jpeg(input_bytes)
-#     elif ext in ["webp"]:
-#         return compress_webp(input_bytes)
-#     else:
-#         raise ValueError("Unsupported file format")
 
 
 def auto_convert_to_webp(data: bytes, filename: str) -> bytes:
@@ -152,106 +94,75 @@ import os
 # JPEG
 # =========================
 
-def compress_jpeg(
+def _compress_jpeg_sync(
     input_bytes: bytes,
     quality: int = 75
 ) -> bytes:
 
     try:
-
-        img = Image.open(
-            BytesIO(input_bytes)
-        )
-
+        img = Image.open(BytesIO(input_bytes))
         img = img.convert("RGB")
 
-    except Exception as e:
-
-        print("Image open error:", e)
-
+    except Exception:
         return input_bytes
 
-    with tempfile.NamedTemporaryFile(
-        suffix=".jpg",
-        delete=False
-    ) as input_file, tempfile.NamedTemporaryFile(
-        suffix=".jpg",
-        delete=False
-    ) as output_file:
+    ppm_buffer = BytesIO()
 
-        try:
+    img.save(
+        ppm_buffer,
+        format="PPM"
+    )
 
-            img.save(
-                input_file,
-                format="JPEG",
-                quality=100
-            )
+    ppm_data = ppm_buffer.getvalue()
 
-            input_file.flush()
+    cmd = [
+        "cjpeg",
 
-            cmd = [
-                "cjpeg",
+        "-quality", str(quality),
 
-                "-quality",
-                str(quality),
+        "-quant-table", "2",
 
-                "-quant-table",
-                "2",
+        "-optimize",
 
-                "-optimize",
+        "-progressive",
 
-                "-progressive",
+        "-dct", "float",
 
-                "-sample",
-                "2x2",
+        "-sample", "2x2"
+    ]
 
-                "-outfile",
-                output_file.name,
+    try:
 
-                input_file.name
-            ]
+        process = subprocess.run(
+            cmd,
+            input=ppm_data,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30
+        )
 
-            result = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-
-            if result.returncode != 0:
-
-                print(
-                    "mozjpeg error:",
-                    result.stderr.decode()
-                )
-
-                return input_bytes
-
-            with open(
-                output_file.name,
-                "rb"
-            ) as f:
-
-                compressed = f.read()
-
-            return compressed
-
-        except Exception as e:
-
-            print("compress_jpeg:", e)
-
+        if process.returncode != 0:
+            print(process.stderr.decode())
             return input_bytes
 
-        finally:
+        return process.stdout
 
-            try:
-                os.unlink(input_file.name)
-            except:
-                pass
+    except Exception as e:
+        print(e)
+        return input_bytes
 
-            try:
-                os.unlink(output_file.name)
-            except:
-                pass
+
+async def compress_jpeg(
+    input_bytes: bytes,
+    quality: int = 75
+) -> bytes:
+
+    return await asyncio.to_thread(
+        _compress_jpeg_sync,
+        input_bytes,
+        quality
+    )
+
 
 # =========================
 # AUTO

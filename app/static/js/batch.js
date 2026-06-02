@@ -255,6 +255,8 @@ async function processSingleFile(file) {
 
         const data = await res.json();
 
+        console.log("Task created:", data);
+
         await checkSingleFileStatus(
             data.task_id,
             filename,

@@ -501,3 +501,18 @@ async def start_worker():
 
 
 
+# import asyncio
+
+# import services.queue_manager as queue_manager
+
+# from services.queue import CompressionQueue
+
+# @app.on_event("startup")
+# async def startup():
+
+#     queue_manager.compression_queue = CompressionQueue()
+
+#     asyncio.create_task(
+#         queue_manager.compression_queue.worker()
+#     )
+
