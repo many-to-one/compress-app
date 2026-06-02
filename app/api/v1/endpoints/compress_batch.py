@@ -180,7 +180,7 @@
 
 
 from io import BytesIO
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import StreamingResponse
 import services.queue_manager as queue_manager
 from services.queue import TaskStatus
@@ -286,4 +286,36 @@ async def download_zip(task_id: str):
         zip_buffer,
         media_type="application/zip",
         headers={"Content-Disposition": 'attachment; filename="compressed.zip"'}
+    )
+
+
+# Endpoint dla wielu zadań (używany przez Twój JS)
+@router.get("/download-multi")
+async def download_multi(tasks: str = Query(...)):
+    q = queue_manager.compression_queue
+    task_ids = tasks.split(",")
+    
+    zip_buffer = BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        found_any = False
+        
+        for tid in task_ids:
+            task = q.get_task(tid)
+            if not task or task.status != TaskStatus.DONE:
+                continue
+            
+            # Dodajemy wszystkie pliki z tego zadania do ZIPa
+            for filename, data in task.results.items():
+                zf.writestr(filename, data)
+                found_any = True
+        
+        if not found_any:
+            raise HTTPException(404, "No completed tasks found to zip")
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="compressed_all.zip"'}
     )
