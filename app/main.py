@@ -11,7 +11,7 @@ from api.v1.endpoints import auth, admin, compress_batch
 from crud.user import get_current_user
 from db.session import get_db, AsyncSessionLocal
 from core.config import settings
-from services.queue import compression_queue
+# from services.queue import compression_queue
 
 import asyncio
 import aioredis
@@ -54,6 +54,7 @@ PUBLIC_PATHS = {
     "/auth/logout",
     "/auth/forgot-password",
     "/auth/reset-password",
+    "/auth/google",
 }
 
 PUBLIC_PREFIXES = [
@@ -420,12 +421,24 @@ app.include_router(
 # STARTUP
 # ============================
 
-@app.on_event("startup")
-async def start_worker():
+# @app.on_event("startup")
+# async def start_worker():
 
-    asyncio.create_task(
-        compression_queue.worker()
-    )
+#     asyncio.create_task(
+#         compression_queue.worker()
+#     )
+
+import asyncio
+import services.queue_manager as queue_manager
+from services.queue import CompressionQueue
+
+
+@app.on_event("startup")
+async def startup_event():
+    # Inicjalizacja globalnej kolejki
+    queue_manager.compression_queue = CompressionQueue()
+    # Uruchomienie workera w pętli zdarzeń FastAPI
+    asyncio.create_task(queue_manager.compression_queue.worker())
 
 
 # ============================

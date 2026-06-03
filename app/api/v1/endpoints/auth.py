@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
@@ -7,6 +8,7 @@ from crud.user import get_user_by_email, create_user, get_current_user, admin_re
 from core.security import verify_password, create_access_token, create_reset_token
 from core.config import settings
 
+import urllib
 import uuid
 import smtplib
 from email.mime.text import MIMEText
@@ -193,3 +195,118 @@ async def block_user(
     await db_session.commit()
 
     return {"status": "blocked", "user_id": user_id}
+
+
+
+# ===================================
+# Google OAuth2
+# ===================================
+SCOPES = [
+    "openid",
+    "email",
+    "profile"
+]
+
+@router.get("/google")
+def google_login():
+    params = {
+        "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": " ".join(SCOPES),
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    print("GOOGLE_OAUTH_CLIENT_ID", settings.GOOGLE_OAUTH_CLIENT_ID)
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+    return RedirectResponse(url)
+
+
+@router.get("/auth/google/callback")
+def google_callback(code: str):
+    token_url = "https://oauth2.googleapis.com/token"
+
+    data = {
+        "code": code,
+        "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }
+
+    # 1. Pobierz tokeny
+    token_res = requests.post(token_url, data=data).json()
+    access_token = token_res["access_token"]
+
+    # 2. Pobierz dane użytkownika
+    userinfo = requests.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"}
+    ).json()
+
+    email = userinfo["email"]
+    name = userinfo.get("name", "")
+    picture = userinfo.get("picture", "")
+
+    # 3. Sprawdź czy użytkownik istnieje w DB
+    user = get_or_create_user(email=email, name=name, avatar=picture)
+
+    # 4. Wygeneruj JWT dla Twojej aplikacji
+    jwt_token = create_jwt_for_user(user)
+
+    # 5. Ustaw cookie i przekieruj do panelu
+    response = RedirectResponse(url="/dashboard")
+    response.set_cookie(
+        key="access_token",
+        value=jwt_token,
+        httponly=True,
+        secure=True,
+        samesite="Lax"
+    )
+    return response
+
+
+# ===========================
+# Google Drive OAuth2
+# ===========================
+SCOPES = [
+    "openid",
+    "email",
+    "profile",
+    "https://www.googleapis.com/auth/drive.file"
+]
+
+@router.get("/auth/google-drive")
+def google_drive_auth():
+    params = {
+        "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": " ".join(SCOPES),
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+    return RedirectResponse(url)
+
+
+@router.get("/auth/google-drive/callback")
+def google_drive_callback(code: str):
+    token_url = "https://oauth2.googleapis.com/token"
+
+    data = {
+        "code": code,
+        "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
+        "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }
+
+    r = requests.post(token_url, data=data)
+    tokens = r.json()
+
+    # Zapisz access_token + refresh_token do DB
+    # tokens["access_token"]
+    # tokens["refresh_token"]
+
+    return {"status": "connected", "tokens": tokens}

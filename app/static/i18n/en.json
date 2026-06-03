@@ -52,6 +52,7 @@
   "login_forgot": "Forgot password",
   "login_no_account": "No account?",
   "login_register": "Register",
+  "login_google": "Login with Google",
 
   "register_badge": "POST /register",
   "register_title": "Create Account",
@@ -71,7 +72,6 @@
   "warning_file_too_big": "The file is larger than 7 MB.",
   "vpn_detected": "VPN detected. Disable VPN to use the app."
 }
-
 
 
 

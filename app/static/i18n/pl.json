@@ -54,6 +54,7 @@
   "login_forgot": "Zapomniałeś hasła",
   "login_no_account": "Nie masz konta?",
   "login_register": "Zarejestruj się",
+  "login_google": "Zaloguj przez Google",
 
   "register_badge": "POST /register",
   "register_title": "Utwórz konto",
@@ -73,7 +74,6 @@
   "warning_file_too_big": "Plik jest większy niż 7 MB.",
   "vpn_detected": "Wykryto VPN. Wyłącz VPN, aby korzystać z aplikacji."
 }
-
 
 
 

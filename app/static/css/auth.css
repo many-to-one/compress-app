@@ -5,7 +5,7 @@
 }
 
 body{
-    min-height:100vh;
+    height:100vh;
 
     background:
         radial-gradient(circle at top left,#0d1d35 0%,#050816 40%),
@@ -26,7 +26,7 @@ body{
     position:relative;
     width:100%;
     max-width:460px;
-    padding:20px;
+    /* padding:20px; */
 }
 
 .glow{

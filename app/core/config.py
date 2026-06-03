@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     EMAIL: str
     EMAIL_FROM: str
+    GOOGLE_OAUTH_CLIENT_ID: str
+    GOOGLE_OAUTH_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str
 
     model_config = {
         "env_file": ".env"

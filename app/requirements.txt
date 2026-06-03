@@ -22,3 +22,4 @@ rq
 jinja2
 httpx
 aioredis
+gunicorn
