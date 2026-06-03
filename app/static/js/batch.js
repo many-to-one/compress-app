@@ -302,9 +302,6 @@ async function checkSingleFileStatus(
 
                 if (data.status === "done") {
 
-                    // Preload pliku po zakończeniu taska (aby był gotowy do natychmiastowego udostępnienia)
-                    await preloadSingleFile(taskId, filename)
-
                     clearInterval(interval);
 
                     const compressedBytes =
@@ -421,17 +418,6 @@ async function checkSingleFileStatus(
 
 
 
-const fileCache = {}; // taskId -> File
-
-async function preloadSingleFile(taskId, filename) {
-    console.log(`Preloading file for task ${taskId}...`);
-    const url = `/compress/file/${taskId}`;
-    const res = await fetch(url);
-    const blob = await res.blob();
-    fileCache[taskId] = new File([blob], filename, { type: blob.type });
-}
-
-
 function showDownloadButton(safeId, taskId, filename) {
     const block = document.getElementById(`file-${safeId}`);
     const actionArea = block.querySelector(".file-b");
@@ -441,38 +427,19 @@ function showDownloadButton(safeId, taskId, filename) {
     dlBtn.innerHTML = "Download";
 
     dlBtn.onclick = () => {
-        shareOrDownload(taskId, filename);
+        downloadFile(taskId, filename);
     };
 
     actionArea.prepend(dlBtn);
 }
 
-
-function shareOrDownload(taskId, filename) {
-    const file = fileCache[taskId];
-
-    if (!file) {
-        // fallback jeśli preload nie zdążył
-        const a = document.createElement("a");
-        a.href = `/compress/file/${taskId}`;
-        a.download = filename;
-        a.click();
-        return;
-    }
-
-    // Web Share API — natychmiast po kliknięciu
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-            files: [file],
-            title: "Skompresowany plik",
-            text: "Twoje zdjęcie jest gotowe"
-        }).catch(err => {
-            console.warn("Share failed:", err);
-        });
-    } else {
-        console.warn("Web Share API not supported or cannot share this file, falling back to download.");
-    }
+function downloadFile(taskId, filename) {
+    const a = document.createElement("a");
+    a.href = `/compress/file/${taskId}`;
+    a.download = filename;
+    a.click();
 }
+
 
 
 

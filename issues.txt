@@ -23,3 +23,8 @@ git reset --hard origin/main
 
 # Jeśli masz lokalne zmiany i chcesz je połączyć:
 git pull --no-rebase origin main
+
+
+# NGINX
+sudo nginx -t
+sudo systemctl reload nginx
