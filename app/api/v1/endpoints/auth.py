@@ -244,25 +244,32 @@ def google_callback(code: str):
         headers={"Authorization": f"Bearer {access_token}"}
     ).json()
 
+    print("================GOOGLE USERINFO:", userinfo)  # debug
+
     email = userinfo["email"]
     name = userinfo.get("name", "")
     picture = userinfo.get("picture", "")
 
     # 3. Sprawdź czy użytkownik istnieje w DB
-    user = get_or_create_user(email=email, name=name, avatar=picture)
+    user = get_user_by_email(email=email)
+    print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji
-    jwt_token = create_jwt_for_user(user)
+    jwt_token = create_access_token({"sub": str(user.id)})
+    print("======================JWT TOKEN:", jwt_token)  # debug
 
     # 5. Ustaw cookie i przekieruj do panelu
-    response = RedirectResponse(url="/dashboard")
     response.set_cookie(
         key="access_token",
         value=jwt_token,
         httponly=True,
         secure=True,
-        samesite="Lax"
+        samesite="Lax",
+        max_age=60 * 60 * 24
     )
+
+    response = RedirectResponse(url="/")
+
     return response
 
 
