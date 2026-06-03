@@ -263,6 +263,7 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
     print("======================JWT TOKEN:", jwt_token)  # debug
 
     # 5. Ustaw cookie i przekieruj do panelu
+    response = RedirectResponse(url="/")
     response.set_cookie(
         key="access_token",
         value=jwt_token,
@@ -271,8 +272,6 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         samesite="Lax",
         max_age=60 * 60 * 24
     )
-
-    response = RedirectResponse(url="/")
 
     return response
 
