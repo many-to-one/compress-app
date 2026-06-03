@@ -24,6 +24,21 @@ git reset --hard origin/main
 # Jeśli masz lokalne zmiany i chcesz je połączyć:
 git pull --no-rebase origin main
 
+# zobaczyć wszystkie commity
+git log --oneline --graph --decorate --all
+
+# Jak przełączyć się na konkretny commit
+git checkout <hash>
+
+# Utworzyć nową gałąź
+git checkout -b nowa-galaz <hash>
+
+# Wrócić na gałąź main
+git checkout main
+
+
+
+
 
 # NGINX
 sudo nginx -t
