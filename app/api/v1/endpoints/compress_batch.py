@@ -184,6 +184,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import StreamingResponse
 import services.queue_manager as queue_manager
 from services.queue import TaskStatus
+import zipfile
 
 router = APIRouter()
 

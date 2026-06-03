@@ -302,6 +302,9 @@ async function checkSingleFileStatus(
 
                 if (data.status === "done") {
 
+                    // Preload pliku po zakończeniu taska (aby był gotowy do natychmiastowego udostępnienia)
+                    await preloadSingleFile(taskId, filename)
+
                     clearInterval(interval);
 
                     const compressedBytes =
@@ -324,13 +327,6 @@ async function checkSingleFileStatus(
                     const originalMB = (originalSize / 1024 / 1024).toFixed(2); //+
                     const compressedMB = (compressedBytes / 1024 / 1024).toFixed(2);//+
 
-                    // sizeDiv.innerHTML = `
-                    //     <span class="reduction-pct">
-                    //         -${reduction.toFixed(0)}%
-                    //     </span>
-                    //     |
-                    //     ${(compressedBytes / 1024 / 1024).toFixed(2)} MB
-                    // `;
 
                     sizeDiv.innerHTML = `
                         <span class="original-size">${originalMB} MB</span>
@@ -378,30 +374,63 @@ async function checkSingleFileStatus(
 // DOWNLOAD BUTTON
 // =========================
 
-// function showDownloadButton(
-//     safeId,
-//     taskId,
-//     filename
-// ) {
+// function showDownloadButton(safeId, taskId, filename) {
+//     const block = document.getElementById(`file-${safeId}`);
+//     const actionArea = block.querySelector(".file-b");
 
-//     const block =
-//         document.getElementById(`file-${safeId}`);
-
-//     const actionArea =
-//         block.querySelector(".file-b");
-
-//     const dlBtn = document.createElement("a");
-
-//     dlBtn.href = `/compress/file/${taskId}`;
-
+//     const dlBtn = document.createElement("button");
 //     dlBtn.className = "btn-mini";
-
 //     dlBtn.innerHTML = "Download";
 
-//     dlBtn.download = filename;
+//     dlBtn.onclick = () => {
+//         const url = `/compress/file/${taskId}`;
+//         shareFileFromUrl(url, filename);
+//     };
 
 //     actionArea.prepend(dlBtn);
 // }
+
+
+
+// // =========================
+// // SHARE (Web Share API with fallback) for mobile
+// // =========================
+// async function shareFileFromUrl(url, filename) {
+//     try {
+//         const res = await fetch(url);
+//         const blob = await res.blob();
+//         const file = new File([blob], filename, { type: blob.type });
+
+//         if (navigator.canShare && navigator.canShare({ files: [file] })) {
+//             await navigator.share({
+//                 files: [file],
+//                 title: "Skompresowany plik",
+//                 text: "Twoje zdjęcie jest gotowe"
+//             });
+//         } else {
+//             // fallback: normalne pobieranie
+//             const a = document.createElement("a");
+//             a.href = url;
+//             a.download = filename;
+//             a.click();
+//         }
+//     } catch (err) {
+//         console.error("Share failed:", err);
+//     }
+// }
+
+
+
+const fileCache = {}; // taskId -> File
+
+async function preloadSingleFile(taskId, filename) {
+    console.log(`Preloading file for task ${taskId}...`);
+    const url = `/compress/file/${taskId}`;
+    const res = await fetch(url);
+    const blob = await res.blob();
+    fileCache[taskId] = new File([blob], filename, { type: blob.type });
+}
+
 
 function showDownloadButton(safeId, taskId, filename) {
     const block = document.getElementById(`file-${safeId}`);
@@ -412,41 +441,39 @@ function showDownloadButton(safeId, taskId, filename) {
     dlBtn.innerHTML = "Download";
 
     dlBtn.onclick = () => {
-        const url = `/compress/file/${taskId}`;
-        shareFileFromUrl(url, filename);
+        shareOrDownload(taskId, filename);
     };
 
     actionArea.prepend(dlBtn);
 }
 
 
+function shareOrDownload(taskId, filename) {
+    const file = fileCache[taskId];
 
-// =========================
-// SHARE (Web Share API with fallback) for mobile
-// =========================
-async function shareFileFromUrl(url, filename) {
-    try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        const file = new File([blob], filename, { type: blob.type });
+    if (!file) {
+        // fallback jeśli preload nie zdążył
+        const a = document.createElement("a");
+        a.href = `/compress/file/${taskId}`;
+        a.download = filename;
+        a.click();
+        return;
+    }
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: "Skompresowany plik",
-                text: "Twoje zdjęcie jest gotowe"
-            });
-        } else {
-            // fallback: normalne pobieranie
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            a.click();
-        }
-    } catch (err) {
-        console.error("Share failed:", err);
+    // Web Share API — natychmiast po kliknięciu
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+            files: [file],
+            title: "Skompresowany plik",
+            text: "Twoje zdjęcie jest gotowe"
+        }).catch(err => {
+            console.warn("Share failed:", err);
+        });
+    } else {
+        console.warn("Web Share API not supported or cannot share this file, falling back to download.");
     }
 }
+
 
 
 // =========================
