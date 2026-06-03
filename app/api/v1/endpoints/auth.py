@@ -224,7 +224,7 @@ def google_login():
 
 
 @router.get("/google/callback")
-def google_callback(code: str, db: AsyncSession = Depends(get_db)):
+async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
     token_url = "https://oauth2.googleapis.com/token"
 
     data = {
@@ -252,7 +252,7 @@ def google_callback(code: str, db: AsyncSession = Depends(get_db)):
     picture = userinfo.get("picture", "")
 
     # 3. Sprawdź czy użytkownik istnieje w DB
-    user = get_user_by_email(
+    user = await get_user_by_email(
         db,
         email
     )
