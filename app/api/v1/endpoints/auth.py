@@ -222,7 +222,7 @@ def google_login():
     return RedirectResponse(url)
 
 
-@router.get("/auth/google/callback")
+@router.get("/google/callback")
 def google_callback(code: str):
     token_url = "https://oauth2.googleapis.com/token"
 
@@ -297,7 +297,7 @@ def google_drive_auth():
     return RedirectResponse(url)
 
 
-@router.get("/auth/google-drive/callback")
+@router.get("/google-drive/callback")
 def google_drive_callback(code: str):
     token_url = "https://oauth2.googleapis.com/token"
 
