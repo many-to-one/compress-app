@@ -59,6 +59,8 @@ PUBLIC_PATHS = {
 
 PUBLIC_PREFIXES = [
     "/static",
+    "/auth/google/callback",
+    "/auth/google-drive/callback",
 ]
 
 
