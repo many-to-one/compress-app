@@ -252,7 +252,10 @@ def google_callback(code: str):
     picture = userinfo.get("picture", "")
 
     # 3. Sprawdź czy użytkownik istnieje w DB
-    user = get_user_by_email(email=email)
+    user = get_user_by_email(
+        db: AsyncSession = Depends(get_db),
+        email: str = email
+    )
     print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji
