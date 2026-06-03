@@ -224,7 +224,7 @@ def google_login():
 
 
 @router.get("/google/callback")
-def google_callback(code: str):
+def google_callback(code: str, db: AsyncSession = Depends(get_db)):
     token_url = "https://oauth2.googleapis.com/token"
 
     data = {
@@ -253,8 +253,8 @@ def google_callback(code: str):
 
     # 3. Sprawdź czy użytkownik istnieje w DB
     user = get_user_by_email(
-        db: AsyncSession = Depends(get_db),
-        email: str = email
+        db,
+        email
     )
     print("======================DB USER:", user)  # debug
 
