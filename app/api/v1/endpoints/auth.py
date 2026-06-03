@@ -9,6 +9,7 @@ from core.security import verify_password, create_access_token, create_reset_tok
 from core.config import settings
 
 import urllib
+import requests
 import uuid
 import smtplib
 from email.mime.text import MIMEText
