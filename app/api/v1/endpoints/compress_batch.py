@@ -8,6 +8,7 @@ import urllib
 import requests
 
 from core.config import settings
+from crud.user import get_current_user
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
 
@@ -148,11 +149,6 @@ async def download_multi(tasks: str = Query(...)):
     )
 
 
-
-
-
-# import json
-# import requests
 
 @router.post("/upload-to-drive")
 async def upload_selected_to_drive(
