@@ -12,6 +12,9 @@ class User(Base):
     full_name = Column(String)
     reset_token = Column(String, nullable=True)
 
+    google_access_token = Column(String, nullable=True)
+    google_drive_access_token = Column(String, nullable=True)
+
     # wszystkie IP, z których user korzystał
     ips = Column(ARRAY(String), default=list)
 

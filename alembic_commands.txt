@@ -1,6 +1,24 @@
 alembic revision --autogenerate -m "message"
 alembic upgrade head
 
+# delete all migrations
+rm -rf alembic/versions/*
+alembic revision --autogenerate -m "init"
+alembic upgrade head
+# if some errors:
+# ERROR [alembic.util.messaging] Can't locate revision identified by '242d63a77966':
+docker exec -it container_name psql -U my_db_user -d my_db
+SELECT * FROM alembic_version;
+# should be:
+ version_num
+--------------
+ 242d63a77966
+# than:
+DELETE FROM alembic_version;
+alembic revision --autogenerate -m "init"
+alembic upgrade head
+
+
 # how to connect to db via docker:
 docker exec -it container_name psql -U my_user -d my_db
 

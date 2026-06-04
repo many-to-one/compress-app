@@ -3,6 +3,35 @@ let currentMode = "compress";
 const finishedTasks = {};
 const MAX_PARALLEL = 4;
 
+let isDriveConnected = false;
+
+
+// =========================
+// CHECK GOOGLE DRIVE STATUS
+// =========================
+
+async function checkDriveStatus() {
+    const res = await fetch("/auth/google-drive/status");
+    const data = await res.json();
+    isDriveConnected = data.connected;
+    updateDriveButton();
+}
+
+function updateDriveButton() {
+    const btn = document.getElementById("googleDriveBtn");
+    const text = document.getElementById("driveBtnText");
+    const actions = document.getElementById("drive-actions");
+    
+    actions.classList.remove("hidden");
+    if (isDriveConnected) {
+        text.innerText = "Upload selected to Drive";
+        btn.onclick = uploadSelectedToDrive;
+    } else {
+        text.innerText = "Connect Google Drive";
+        btn.onclick = () => window.location.href = "/auth/google-drive";
+    }
+}
+
 // =========================
 // MODE
 // =========================
@@ -32,6 +61,12 @@ function renderFiles(files) {
 
         container.innerHTML += `
             <div class="file-block" id="file-${safeId}">
+
+                <input                    
+                    type="checkbox" 
+                    class="file-select" 
+                    data-filename="${f.name}" id="check-${safeId}"
+                >
 
                 ${url
                     ? `<img class="file-thumb" src="${url}" alt="">`
@@ -127,21 +162,7 @@ const dropZone = document.getElementById("dropZone");
     });
 });
 
-// dropZone.addEventListener("drop", (e) => {
 
-//     const dtFiles = e.dataTransfer.files;
-
-//     document.getElementById("files").files = dtFiles;
-
-//     renderFiles(dtFiles);
-
-//     updateFileSizes(dtFiles);
-
-//     document.getElementById("fileProgressContainer")
-//         .scrollIntoView({
-//             behavior: "smooth"
-//         });
-// });
 
 
 dropZone.addEventListener("drop", (e) => {
@@ -480,6 +501,60 @@ function updateErrorUI(safeId) {
     block.classList.add("error");
 }
 
+
+
+
+// =========================
+// UPLOAD TO GOOGLE DRIVE
+// =========================
+
+// Obsługa "Wybierz wszystkie"
+document.getElementById("selectAll").onchange = (e) => {
+    document.querySelectorAll(".file-select").forEach(cb => cb.checked = e.target.checked);
+};
+
+async function uploadSelectedToDrive() {
+    const selectedCheckboxes = document.querySelectorAll(".file-select:checked");
+    const taskIds = [];
+    
+    selectedCheckboxes.forEach(cb => {
+        const filename = cb.getAttribute("data-filename");
+        if (finishedTasks[filename]) taskIds.push(finishedTasks[filename]);
+    });
+
+    if (taskIds.length === 0) {
+        alert("Select finished files first!");
+        return;
+    }
+
+    const btn = document.getElementById("googleDriveBtn");
+    btn.disabled = true;
+    btn.innerText = "Uploading...";
+
+    try {
+        const res = await fetch("/compress/upload-to-drive", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(taskIds)
+        });
+
+        if (res.status === 401) {
+            window.location.href = "/auth/google-drive";
+            return;
+        }
+
+        const data = await res.json();
+        alert(`Successfully uploaded ${data.uploaded.length} files to Google Drive!`);
+    } catch (e) {
+        alert("Upload failed.");
+    } finally {
+        btn.disabled = false;
+        updateDriveButton();
+    }
+}
+
+// Wywołaj sprawdzenie statusu przy ładowaniu
+checkDriveStatus();
 
 
 // =========================

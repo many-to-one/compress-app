@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -245,7 +245,7 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         headers={"Authorization": f"Bearer {access_token}"}
     ).json()
 
-    print("================GOOGLE USERINFO:", userinfo)  # debug
+    # print("================GOOGLE USERINFO:", userinfo)  # debug
 
     email = userinfo["email"]
     name = userinfo.get("name", "")
@@ -256,11 +256,11 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         db,
         email
     )
-    print("======================DB USER:", user)  # debug
+    # print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji
     jwt_token = create_access_token({"sub": str(user.id)})
-    print("======================JWT TOKEN:", jwt_token)  # debug
+    # print("======================JWT TOKEN:", jwt_token)  # debug
 
     # 5. Ustaw cookie i przekieruj do panelu
     response = RedirectResponse(url="/")
@@ -279,6 +279,14 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
 # ===========================
 # Google Drive OAuth2
 # ===========================
+
+@router.get("/google-drive/status")
+async def google_drive_status(request: Request, db: AsyncSession = Depends(get_db)):
+    user = await get_current_user(request, db)
+    if not user: return {"connected": False}
+    # Sprawdzamy czy mamy token dostępu
+    return {"connected": bool(user.google_drive_access_token)}
+    
 SCOPES = [
     "openid",
     "email",
@@ -286,8 +294,16 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.file"
 ]
 
-@router.get("/auth/google-drive")
-def google_drive_auth():
+@router.get("/google-drive")
+async def google_drive_auth(
+        request: Request, 
+        db: AsyncSession = Depends(get_db)
+    ):
+
+    user = await get_current_user(request=request, db=db)
+    if not user:
+        raise HTTPException(401, "Unauthorized")
+
     params = {
         "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
         "redirect_uri": settings.GOOGLE_REDIRECT_URI,
@@ -301,7 +317,16 @@ def google_drive_auth():
 
 
 @router.get("/google-drive/callback")
-def google_drive_callback(code: str):
+async def google_drive_callback(
+        code: str, 
+        request: Request,  
+        db: AsyncSession = Depends(get_db)
+    ):
+
+    user = await get_current_user(request=request, db=db)
+    if not user:
+        raise HTTPException(401, "Unauthorized")
+        
     token_url = "https://oauth2.googleapis.com/token"
 
     data = {
@@ -315,8 +340,9 @@ def google_drive_callback(code: str):
     r = requests.post(token_url, data=data)
     tokens = r.json()
 
-    # Zapisz access_token + refresh_token do DB
-    # tokens["access_token"]
-    # tokens["refresh_token"]
+    # Zapisz tokeny do użytkownika
+    user.google_drive_access_token = tokens["access_token"]
+    user.google_drive_refresh_token = tokens["refresh_token"]
+    await db.commit()
 
     return {"status": "connected", "tokens": tokens}

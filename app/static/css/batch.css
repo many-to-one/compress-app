@@ -497,7 +497,30 @@ body.compact .progress-bar {
 }
 
 
+/* Checkboxes for file selection and "Select All" functionality */
 
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--neon);
+    font-weight: bold;
+}
+
+.file-select {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--neon);
+    cursor: pointer;
+}
+
+/* Przycisk Drive */
+#googleDriveBtn.alt {
+    background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
+    background-size: 300% 300%;
+    color: white;
+}
 
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
