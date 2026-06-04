@@ -184,7 +184,7 @@ async def upload_selected_to_drive(
                 files=files
             )
 
-            print('=================upload_selected_to_drive============', r)
+            print('=================upload_selected_to_drive============', r.json())
             
             if r.status_code == 200:
                 uploaded_files.append(filename)
