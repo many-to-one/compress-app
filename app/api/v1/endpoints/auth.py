@@ -245,7 +245,7 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         headers={"Authorization": f"Bearer {access_token}"}
     ).json()
 
-    # print("================GOOGLE USERINFO:", userinfo)  # debug
+    print("================GOOGLE USERINFO:", userinfo)  # debug
 
     email = userinfo["email"]
     name = userinfo.get("name", "")
@@ -256,11 +256,11 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         db,
         email
     )
-    # print("======================DB USER:", user)  # debug
+    print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji
     jwt_token = create_access_token({"sub": str(user.id)})
-    # print("======================JWT TOKEN:", jwt_token)  # debug
+    print("======================JWT TOKEN:", jwt_token)  # debug
 
     # 5. Ustaw cookie i przekieruj do panelu
     response = RedirectResponse(url="/")
@@ -286,12 +286,13 @@ async def google_drive_status(request: Request, db: AsyncSession = Depends(get_d
     if not user: return {"connected": False}
     # Sprawdzamy czy mamy token dostępu
     return {"connected": bool(user.google_drive_access_token)}
-    
+
 SCOPES = [
     "openid",
     "email",
     "profile",
-    "https://www.googleapis.com/auth/drive.file"
+    'https://www.googleapis.com/auth/drive.metadata.readonly'
+    # "https://www.googleapis.com/auth/drive.file"
 ]
 
 @router.get("/google-drive")
@@ -306,7 +307,7 @@ async def google_drive_auth(
 
     params = {
         "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "redirect_uri": settings.GOOGLE_DRIVE_REDIRECT_URI,
         "response_type": "code",
         "scope": " ".join(SCOPES),
         "access_type": "offline",
@@ -333,7 +334,7 @@ async def google_drive_callback(
         "code": code,
         "client_id": settings.GOOGLE_OAUTH_CLIENT_ID,
         "client_secret": settings.GOOGLE_OAUTH_CLIENT_SECRET,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "redirect_uri": settings.GOOGLE_DRIVE_REDIRECT_URI,
         "grant_type": "authorization_code"
     }
 

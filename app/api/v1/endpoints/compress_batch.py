@@ -172,6 +172,7 @@ async def upload_selected_to_drive(
         if not task or not task.results: continue
         
         for filename, data in task.results.items():
+            print('=========upload filename==========', filename)
             # Google Drive Multipart Upload
             metadata = {"name": filename}
             files = {

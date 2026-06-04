@@ -13,6 +13,7 @@ let isDriveConnected = false;
 async function checkDriveStatus() {
     const res = await fetch("/auth/google-drive/status");
     const data = await res.json();
+    console.log('checkDriveStatus---', res)
     isDriveConnected = data.connected;
     updateDriveButton();
 }
@@ -537,6 +538,8 @@ async function uploadSelectedToDrive() {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(taskIds)
         });
+
+        console.log("uploadSelectedToDrive", res)
 
         if (res.status === 401) {
             window.location.href = "/auth/google-drive";

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: str
     GOOGLE_OAUTH_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
+    GOOGLE_DRIVE_REDIRECT_URI: str
 
     model_config = {
         "env_file": ".env"
