@@ -343,7 +343,10 @@ async def google_drive_callback(
 
     # Zapisz tokeny do użytkownika
     user.google_drive_access_token = tokens["access_token"]
-    user.google_drive_refresh_token = tokens["refresh_token"]
+    # user.google_drive_refresh_token = tokens["refresh_token"]
     await db.commit()
 
-    return {"status": "connected", "tokens": tokens}
+    # return {"status": "connected", "tokens": tokens}
+    response = RedirectResponse(url="/")
+
+    return response
