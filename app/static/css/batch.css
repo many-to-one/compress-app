@@ -492,12 +492,22 @@ body.compact .progress-bar {
     to   { transform: scale(1); opacity: 1; }
 }
 
-.hidden {
-    display: none;
-}
-
 
 /* Checkboxes for file selection and "Select All" functionality */
+
+#googleDriveBtnUpload {
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.drive-actions {
+    /* margin-top: 20px;  */
+    /* border-top: 1px solid var(--border);  */
+    /* padding-top: 10px; */
+}
 
 .checkbox-container {
     display: flex;
@@ -520,6 +530,7 @@ body.compact .progress-bar {
     background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
     background-size: 300% 300%;
     color: white;
+    margin-top: -10px;
 }
 
 
@@ -620,4 +631,8 @@ body.compact .progress-bar {
         bottom: 10px;
         right: -20px;
     }
+}
+
+.hidden {
+    display: none;
 }

@@ -4,7 +4,13 @@ const finishedTasks = {};
 const MAX_PARALLEL = 4;
 
 let isDriveConnected = false;
+const driveActions = document.getElementById("drive-actions");
+const googleDriveBtn = document.getElementById("googleDriveBtn");
+let actions = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+    actions = document.getElementById("drive-actions");
+});
 
 // =========================
 // CHECK GOOGLE DRIVE STATUS
@@ -15,20 +21,22 @@ async function checkDriveStatus() {
     const data = await res.json();
     console.log('checkDriveStatus---', res)
     isDriveConnected = data.connected;
-    updateDriveButton();
+    await updateDriveButton();
 }
 
-function updateDriveButton() {
+async function updateDriveButton() {
     const btn = document.getElementById("googleDriveBtn");
-    const text = document.getElementById("driveBtnText");
-    const actions = document.getElementById("drive-actions");
+    // const text = document.getElementById("driveBtnText");
     
-    actions.classList.remove("hidden");
     if (isDriveConnected) {
-        text.innerText = "Upload selected to Drive";
-        btn.onclick = uploadSelectedToDrive;
+        // text.innerText = "Upload selected to Drive";
+        // actions.classList.remove("hidden");
+        btn.classList.add("hidden");
+        // btn.onclick = uploadSelectedToDrive;
     } else {
-        text.innerText = "Connect Google Drive";
+        // text.innerText = "Connect Google Drive";
+        // actions.classList.remove("hidden");
+        btn.classList.remove("hidden");
         btn.onclick = () => window.location.href = "/auth/google-drive";
     }
 }
@@ -37,10 +45,10 @@ function updateDriveButton() {
 // MODE
 // =========================
 
-document.getElementById("convertWebpBtn").onclick = () => {
-    currentMode = "webp";
-    document.getElementById("uploadForm").requestSubmit();
-};
+// document.getElementById("convertWebpBtn").onclick = () => {
+//     currentMode = "webp";
+//     document.getElementById("uploadForm").requestSubmit();
+// };
 
 // =========================
 // RENDER FILES
@@ -344,14 +352,6 @@ async function checkSingleFileStatus(
                     const originalMB = (originalSize / 1024 / 1024).toFixed(2); //+
                     const compressedMB = (compressedBytes / 1024 / 1024).toFixed(2);//+
 
-                    // sizeDiv.innerHTML = `
-                    //     <span class="reduction-pct">
-                    //         -${reduction.toFixed(0)}%
-                    //     </span>
-                    //     |
-                    //     ${(compressedBytes / 1024 / 1024).toFixed(2)} MB
-                    // `;
-
                     sizeDiv.innerHTML = `
                         <span class="original-size">${originalMB} MB</span>
                         →
@@ -429,6 +429,8 @@ function showDownloadButton(
 
 function checkGlobalCompletion() {
 
+    if (actions) actions.classList.remove("hidden");
+
     const totalFiles =
         document.getElementById("files").files.length;
 
@@ -458,7 +460,12 @@ function checkGlobalCompletion() {
 
     statusDiv.innerHTML = "";
 
+    statusDiv.appendChild(actions);
     statusDiv.appendChild(zipBtn);
+    const googleDriveBtnUpload = document.getElementById("googleDriveBtnUpload"); 
+    googleDriveBtnUpload.onclick = uploadSelectedToDrive;
+    // console.log('checkGlobalCompletion - actions after', actions)
+    // console.log('checkGlobalCompletion - statusDiv', statusDiv)
 }
 
 // =========================
@@ -552,7 +559,7 @@ async function uploadSelectedToDrive() {
         alert("Upload failed.");
     } finally {
         btn.disabled = false;
-        updateDriveButton();
+        await updateDriveButton();
     }
 }
 

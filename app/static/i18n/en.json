@@ -64,6 +64,7 @@
   "register_button": "Register",
   "register_have_account": "Already have an account?",
   "register_login": "Login",
+  "connect_google_drive": "Connect Google Drive",
 
   "warning_title": "Warning",
   "warning_message": "Something went wrong.",
