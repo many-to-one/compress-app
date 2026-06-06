@@ -431,16 +431,26 @@ app.include_router(
 #     )
 
 import asyncio
+
 import services.queue_manager as queue_manager
 from services.queue import CompressionQueue
+
+import services.video_queue_manager as video_queue_manager
+from services.video_queue import VideoQueue
 
 
 @app.on_event("startup")
 async def startup_event():
+    
+    # Kolejka zdjęć
     # Inicjalizacja globalnej kolejki
     queue_manager.compression_queue = CompressionQueue()
     # Uruchomienie workera w pętli zdarzeń FastAPI
     asyncio.create_task(queue_manager.compression_queue.worker())
+
+    # Kolejka wideo
+    video_queue_manager.video_queue = VideoQueue()
+    asyncio.create_task(video_queue_manager.video_queue.worker())
 
 
 # ============================

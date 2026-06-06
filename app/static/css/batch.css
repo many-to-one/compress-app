@@ -301,6 +301,8 @@ body.compact .progress-bar {
 }
 
 .progress-fill {
+    display: block;
+    width: 0%;
     height: 100%;
     border-radius: 10px;
     transition: width 0.3s ease;
@@ -526,11 +528,24 @@ body.compact .progress-bar {
 }
 
 /* Przycisk Drive */
-#googleDriveBtn.alt {
+/* #googleDriveBtn.alt {
     background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
     background-size: 300% 300%;
     color: white;
     margin-top: -10px;
+} */
+
+.googl-drive-btn {
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    background: linear-gradient(90deg, var(--neon), var(--neon2), var(--neon3));
+    background-size: 300% 300%;
+    animation: neonBtn 4s linear infinite;
+    box-shadow: 0 0 12px var(--neon);
+    transition: transform 0.2s ease;
 }
 
 

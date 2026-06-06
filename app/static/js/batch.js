@@ -62,6 +62,8 @@ function renderFiles(files) {
 
     for (let f of files) {
 
+        console.log('renderFiles-----', f)
+
         const safeId = createSafeId(f.name);
 
         const url = f.type.startsWith("image/")

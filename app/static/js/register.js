@@ -5,7 +5,13 @@ form.addEventListener("submit", async (e) => {
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirm_password").value;
     const result = document.getElementById("result");
+
+    if (password !== confirmPassword) {
+        result.innerText = "Passwords do not match";
+        return;
+    }
 
     try {
         const response = await fetch("/auth/register", {

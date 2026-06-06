@@ -37,6 +37,7 @@ WORKDIR /app
 
 # Instalujemy pngquant w obrazie finalnym
 RUN apt-get update && apt-get install -y \
+    ffmpeg \
     pngquant \
     && rm -rf /var/lib/apt/lists/*
 
@@ -59,4 +60,4 @@ RUN pip install --upgrade pip && \
 COPY ./app /app
 
 # Test podczas budowania - jeśli tu wyrzuci błąd, build się zatrzyma
-RUN cjpeg -version
+RUN cjpeg -version && ffmpeg -version

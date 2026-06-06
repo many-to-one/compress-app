@@ -256,6 +256,9 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
         db,
         email
     )
+
+    if not user:
+        user = create_user(email=email, name=name)
     print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji

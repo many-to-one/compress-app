@@ -2,6 +2,12 @@ from io import BytesIO
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Depends, Request
 from fastapi.responses import StreamingResponse
 import services.queue_manager as queue_manager
+import services.video_queue_manager as video_queue_manager
+from starlette.responses import JSONResponse, Response
+from starlette.background import BackgroundTasks
+from typing import List, Dict
+import asyncio
+import uuid
 from services.queue import TaskStatus
 import zipfile
 import urllib
@@ -206,18 +212,50 @@ def download_from_drive(access_token, file_id):
     return r.content
 
 
-# def upload_to_drive(access_token, folder_id, filename, file_bytes):
-#     headers = {"Authorization": f"Bearer {access_token}"}
-#     metadata = {"name": filename, "parents": [folder_id]}
 
-#     files = {
-#         "metadata": ("metadata", json.dumps(metadata), "application/json"),
-#         "file": (filename, file_bytes)
-#     }
 
-#     r = requests.post(
-#         "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-#         headers=headers,
-#         files=files
-#     )
-#     return r.json()
+@router.post("/video")
+async def compress_video_endpoint(file: UploadFile = File(...)):
+
+    data = await file.read()
+
+    try:
+        task_id = await video_queue_manager.video_queue.add_task(
+            file_data={"filename": file.filename, "data": data}
+        )
+        return {"task_id": task_id}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.get("/video/status/{task_id}")
+def video_status(task_id: str):
+
+    task = video_queue_manager.video_queue.get_task(task_id)
+    if not task:
+        return JSONResponse({"error": "Task not found"}, status_code=404)
+
+    position = video_queue_manager.video_queue.get_position(task_id)
+
+    return {
+        "status": task.status,
+        "progress": task.progress,
+        "error": task.error,
+        "queue_position": position,
+        "message": f"Przed tobą {position} użytkowników..." if position > 0 else "Twoje zadanie jest przetwarzane."
+    }
+
+
+@router.get("/video/download/{task_id}")
+def download_video(task_id: str):
+    task = video_queue_manager.video_queue.get_task(task_id)
+    if not task or not task.result:
+        raise HTTPException(status_code=404, detail="File not ready")
+
+    return Response(
+        content=task.result,
+        media_type="video/mp4",
+        headers={"Content-Disposition": "attachment; filename=compressed.mp4"}
+    )
