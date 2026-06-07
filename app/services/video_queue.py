@@ -67,6 +67,7 @@ class VideoQueue:
     # =====================
 
     def get_task(self, task_id):
+        print("===get_task===", self.tasks)
         return self.tasks.get(task_id)
 
     # =====================
@@ -74,23 +75,26 @@ class VideoQueue:
     # =====================
 
     async def worker(self):
+        # Aby umożliwić kompresję 3 filmów na raz, możemy użyć Semaphore
+        sem = asyncio.Semaphore(3) 
+
+        async def run_task(task):
+            async with sem:
+                task.status = VideoStatus.PROCESSING
+                try:
+                    await self.process_video(task)
+                    task.status = VideoStatus.DONE
+                except Exception as e:
+                    task.status = VideoStatus.ERROR
+                    task.error = str(e)
+                finally:
+                    self.queue.task_done()
 
         while True:
             task = await self.queue.get()
+            asyncio.create_task(run_task(task)) # Uruchamia zadania równolegle (do limitu semafora)
 
-            task.status = VideoStatus.PROCESSING
 
-            try:
-                await self.process_video(task)
-                task.status = VideoStatus.DONE
-                task.progress = 100
-
-            except Exception as e:
-                task.status = VideoStatus.ERROR
-                task.error = str(e)
-
-            finally:
-                self.queue.task_done()
 
     # =====================
     # PROCESS VIDEO
@@ -118,6 +122,7 @@ class VideoQueue:
         # 3) Zakończone
         task.result = compressed
         task.compressed_size = len(compressed)
+        print(f"==============Compressed {filename}: {len(data)} -> {len(compressed)} bytes")
         task.progress = 100
 
 

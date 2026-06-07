@@ -119,8 +119,12 @@
                 <input type="file" id="files_video" name="files" accept="video/*" hidden>
             </label>
 
-            <button class="btn" type="submit" data-i18n="start_compression">
-                Start Compression
+            <button id="startImagesBtn" name="action" value="images" class="btn hidden" type="submit" data-i18n="start_compression">
+                Start Compression Photos
+            </button>
+
+            <button id="startVideosBtn" name="action" value="videos" class="btn hidden" type="submit" data-i18n="start_compression">
+                Start Compression Videos
             </button>
 
             <button id="googleDriveBtn" class="googl-drive-btn hidden">

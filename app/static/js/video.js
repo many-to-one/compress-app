@@ -1,7 +1,6 @@
 // ===============================
 // VIDEO COMPRESSION FRONTEND
 // ===============================
-
 const uploadForm = document.getElementById("uploadForm");
 const fileInput = document.getElementById("files_video");
 const dropZone = document.getElementById("dropZone");
@@ -11,71 +10,8 @@ const fill = document.getElementById("progressFill");
 
 let currentTaskId = null;
 
+const videoCompBtn = document.getElementById("startVideosBtn");
 
-// =========================
-// RENDER VIDEO FILES
-// =========================
-
-function renderVideoFiles(files) {
-
-    const container = document.getElementById("fileProgressContainer");
-    container.innerHTML = "";
-
-    for (let f of files) {
-
-        const safeId = createSafeId(f.name);
-
-        // Miniaturka wideo (pierwsza klatka)
-        let videoThumb = "";
-        if (f.type.startsWith("video/")) {
-            const url = URL.createObjectURL(f);
-            videoThumb = `
-                <video class="file-thumb" src="${url}" muted preload="metadata"></video>
-            `;
-        }
-
-        container.innerHTML += `
-            <div class="file-block" id="file-${safeId}">
-
-                <input                    
-                    type="checkbox" 
-                    class="file-select" 
-                    data-filename="${f.name}" id="check-${safeId}"
-                >
-
-                ${videoThumb}
-
-                <div class="file-size" id="size-${safeId}"></div>
-
-                <div class="file-b">
-
-                    <div class="file-name">
-                        ${f.name}
-                    </div>
-
-                    <div class="progress-wrapper">
-
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width:0%"></div>
-                        </div>
-
-                        <div class="progress-label">
-                            0%
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-        `;
-    }
-}
-
-function createSafeId(name) {
-    return btoa(unescape(encodeURIComponent(name)))
-        .replace(/=/g, "");
-}
 
 function updateVideoSizes(files) {
 
@@ -173,196 +109,454 @@ dropZone.addEventListener("drop", (e) => {
 });
 
 
-// ===============================
-// FORM SUBMIT
-// ===============================
 
-uploadForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+function updateProgressUI(safeId, pct, finished = false) {
+    const block = document.getElementById(`file-${safeId}`);
+    if (!block) return;
 
-    const file = fileInput.files[0];
-    if (!file) {
-        alert("Wybierz plik wideo.");
+    const fillEl = block.querySelector(".progress-fill");
+    const labelEl = block.querySelector(".progress-label");
+
+    const pctNum = Math.max(0, Math.min(100, Number(pct || 0)));
+    if (fillEl) fillEl.style.width = `${pctNum}%`;
+    if (labelEl) labelEl.textContent = `${pctNum}%`;
+
+    // opcjonalne style końcowe
+    if (finished) {
+        if (fillEl) fillEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+    }
+}
+
+function updateErrorUI(safeId, errorMsg = "Błąd") {
+    const block = document.getElementById(`file-${safeId}`);
+    if (!block) return;
+
+    const labelEl = block.querySelector(".progress-label");
+    if (labelEl) labelEl.textContent = errorMsg;
+
+    block.classList.add("file-error");
+}
+
+
+// // =========================
+// // WARNING MODAL
+// // =========================
+// function showWarning(i18nKey, dynamicText = "") {
+//     const modal = document.getElementById("warningModal");
+//     const msgTooMany = document.getElementById("warningTooMany");
+//     const msgTooBig = document.getElementById("warningTooBig");
+//     const btn = document.getElementById("warningClose");
+
+//     // Reset widoczności
+//     msgTooMany.classList.add("hidden");
+//     msgTooBig.classList.add("hidden");
+
+//     // Wybór komunikatu
+//     if (i18nKey === "warning_too_many_files") {
+//         msgTooMany.classList.remove("hidden");
+//     }
+
+//     if (i18nKey === "warning_file_too_big") {
+//         msgTooBig.classList.remove("hidden");
+
+//         // dynamiczny tekst (np. nazwa pliku)
+//         if (dynamicText) {
+//             msgTooBig.textContent = dynamicText;
+//         }
+//     }
+
+//     // Odśwież tłumaczenia
+//     if (typeof applyTranslations === "function") {
+//         applyTranslations();
+//     }
+
+//     modal.classList.remove("hidden");
+
+//     btn.onclick = () => {
+//         modal.classList.add("hidden");
+//     };
+// }
+
+
+async function uploadSelectedToDrive() {
+    const selectedCheckboxes = document.querySelectorAll(".file-select:checked");
+    const taskIds = [];
+    
+    selectedCheckboxes.forEach(cb => {
+        const filename = cb.getAttribute("data-filename");
+        if (finishedTasks[filename]) taskIds.push(finishedTasks[filename]);
+    });
+
+    if (taskIds.length === 0) {
+        alert("Select finished files first!");
         return;
     }
 
-    progressContainer.innerHTML = "";
-    statusBox.innerHTML = "Wysyłanie pliku...";
+    const btn = document.getElementById("googleDriveBtn");
+    btn.disabled = true;
+    btn.innerText = "Uploading...";
 
+    try {
+        const res = await fetch("/compress/upload-to-drive", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(taskIds)
+        });
+
+        console.log("uploadSelectedToDrive", res)
+
+        if (res.status === 401) {
+            window.location.href = "/auth/google-drive";
+            return;
+        }
+
+        const data = await res.json();
+        alert(`Successfully uploaded ${data.uploaded.length} files to Google Drive!`);
+    } catch (e) {
+        alert("Upload failed.");
+    } finally {
+        btn.disabled = false;
+        await updateDriveButton();
+    }
+}
+
+// Wywołaj sprawdzenie statusu przy ładowaniu
+checkDriveStatus();
+
+
+
+// ***************************************** NEW ***************************************** //
+
+// app/static/js/video.js
+let currentMode = "video";
+const finishedVideoTasks = {};
+const MAX_PARALLEL_VIDEO = 3;
+let isDriveConnected = false;
+
+// ===============================
+// INITIALIZE
+// ===============================
+document.addEventListener("DOMContentLoaded", async () => {
+    await checkDriveStatus();
+});
+
+async function checkDriveStatus() {
+    const res = await fetch("/auth/google-drive/status");
+    const data = await res.json();
+    isDriveConnected = data.connected;
+    updateDriveButton();
+}
+
+function updateDriveButton() {
+    const btn = document.getElementById("googleDriveBtn");
+    if (!btn) return;
+    if (isDriveConnected) {
+        btn.innerHTML = "<span>Upload selected to Drive</span>";
+        btn.onclick = uploadSelectedToDrive;
+    } else {
+        btn.innerHTML = "<span>Connect Google Drive</span>";
+        btn.onclick = () => window.location.href = "/auth/google-drive";
+    }
+}
+
+// ===============================
+// RENDER & SIZE
+// ===============================
+function renderVideoFiles(files) {
+
+    if (files.length) videoCompBtn.classList.remove("hidden");
+
+    const container = document.getElementById("fileProgressContainer");
+    container.innerHTML = "";
+    for (let f of files) {
+        const safeId = createSafeId(f.name);
+        const url = URL.createObjectURL(f);
+        container.innerHTML += `
+            <div class="file-block" id="file-${safeId}">
+                <input type="checkbox" class="file-select-video file-select" data-filename="${f.name}" id="check-${safeId}">
+                <video class="file-thumb" src="${url}" muted preload="metadata"></video>
+                <div class="file-size" id="size-${safeId}"></div>
+                <div class="file-b">
+                    <div class="file-name">${f.name}</div>
+                    <div class="progress-wrapper">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-label">0%</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function createSafeId(name) {
+    return btoa(unescape(encodeURIComponent(name))).replace(/=/g, "");
+}
+
+
+
+// ===============================
+// SUBMIT & QUEUE
+// ===============================
+document.getElementById("uploadForm").onsubmit = async (e) => {
+
+    // submitter to przycisk, który wywołał submit
+    const submitter = e.submitter || document.activeElement;
+
+    if (!submitter) {
+        // fallback: nic nie rób
+        e.preventDefault();
+        return;
+    }
+
+
+    if (submitter.id === "startImagesBtn") {
+
+        e.preventDefault();
+        const files = Array.from(
+            document.getElementById("files").files
+        );
+
+        if (!files.length) return;
+
+        document.getElementById("status").innerHTML =
+            `<p class="neon-text">Processing ${files.length} files...</p>`;
+
+        
+        await processQueue(files); //from batch.js
+        return;
+    }
+
+
+
+
+    if (submitter.id === "startVideosBtn") {
+        e.preventDefault();
+        const files_video = Array.from(document.getElementById("files_video").files);
+        if (!files_video.length) return;
+
+        const files = Array.from(
+            document.getElementById("files").files
+        );
+
+        document.getElementById("status").innerHTML = `<p class="neon-text">Processing ${files_video.length} videos...</p>`;
+        
+
+        renderVideoFiles(files_video);
+        updateVideoSizes(files_video);
+        // Przetwarzanie równoległe (limit 3)
+        const queue = [...files_video];
+        const workers = Array(MAX_PARALLEL_VIDEO).fill(null).map(() => videoWorker(queue));
+        await Promise.all(workers);
+    }
+    
+};
+
+async function videoWorker(queue) {
+    while (queue.length > 0) {
+        const file = queue.shift();
+        if (file) await processSingleVideo(file);
+    }
+}
+
+async function processSingleVideo(file) {
+    const safeId = createSafeId(file.name);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-        const res = await fetch("/compress/video", {
-            method: "POST",
-            body: formData
-        });
-
+        const res = await fetch("/compress/video", { method: "POST", body: formData });
         const data = await res.json();
-        console.log("submit:", data);
-
-        if (!res.ok) {
-            statusBox.innerHTML = "Błąd: " + data.detail;
-            return;
-        }
-
-        currentTaskId = data.task_id;
-        statusBox.innerHTML = "Plik dodany do kolejki...";
-        createProgressUI(file.filename)
-        pollStatus();
-
+        await pollVideoStatus(data.task_id, file.name, file.size);
     } catch (err) {
-        statusBox.innerHTML = "Błąd połączenia.";
+        updateErrorUI(safeId);
     }
-});
+}
 
+// ===============================
+// STATUS POLLING
+// ===============================
+async function pollVideoStatus(taskId, filename, originalSize) {
+    const safeId = createSafeId(filename);
+    return new Promise((resolve) => {
+        const interval = setInterval(async () => {
+            const res = await fetch(`/compress/video/status/${taskId}`);
+            const data = await res.json();
+            console.log(`Status for ${filename}:`, data);
 
-function createProgressUI(filename) {
-    const container = document.getElementById("fileProgressContainer");
-    container.innerHTML = `
-        <div class="progress-item" id="progress-item">
-            <div class="progress-label" id="videoProgressLabel">0%</div>
-            <div class="progress-bar">
-                <div id="videoProgressFill" class="progress-fill" style="width:0%"></div>
-            </div>
-        </div>
-    `;
+            updateProgressUI(safeId, data.progress || 0);
+
+            if (data.status === "done") {
+                clearInterval(interval);
+                const compressedBytes = data.compressed_size;
+                const reduction = ((originalSize - compressedBytes) / originalSize) * 100;
+                
+                const sizeDiv = document.getElementById(`size-${safeId}`);
+                sizeDiv.innerHTML = `
+                    <span class="original-size">${(originalSize/1024/1024).toFixed(2)} MB</span> → 
+                    <span class="reduction-pct">-${reduction.toFixed(0)}%</span> | 
+                    <span class="compressed-size">${(compressedBytes/1024/1024).toFixed(2)} MB</span>
+                `;
+
+                showDownloadButton(safeId, taskId, filename);
+                finishedVideoTasks[filename] = taskId;
+                updateProgressUI(safeId, 100, true);
+                checkGlobalVideoCompletion();
+                resolve();
+            }
+            if (data.status === "error") {
+                clearInterval(interval);
+                updateErrorUI(safeId, data.error);
+                resolve();
+            }
+        }, 2000);
+    });
+}
+
+function showDownloadButton(safeId, taskId, filename) {
+    const block = document.getElementById(`file-${safeId}`);
+    const actionArea = block.querySelector(".file-b");
+    const dlBtn = document.createElement("a");
+    dlBtn.href = `/compress/video/download/${taskId}`;
+    dlBtn.className = "btn-mini";
+    dlBtn.innerHTML = "Download";
+    dlBtn.download = filename;
+    actionArea.prepend(dlBtn);
+}
+
+// ===============================
+// COMPLETION (ZIP & DRIVE)
+// ===============================
+
+// Helper: zwraca lub inicjalizuje kontener akcji (actions)
+function getActionsContainer() {
+    let actionsEl = actions;
+    if (!actionsEl) {
+        // jeśli nie ma w DOM, tworzymy i dodajemy w status (bez stylów)
+        actionsEl = document.createElement("div");
+        actionsEl.id = "drive-actions";
+        actionsEl.className = "drive-actions";
+        // możesz dodać tu checkbox/select all itp. jeśli potrzebujesz
+    }
+    return actionsEl;
+}
+
+// Helper: tworzy przycisk upload do Drive (nowy element, nie przenosimy istniejącego)
+function createGoogleDriveUploadButton() {
+    updateDriveButton();
+    const btn = document.createElement("button");
+    btn.id = "googleDriveBtnUpload";
+    btn.className = "success-btn";
+    btn.innerHTML = `<img src="/static/icons/gdup.png" alt="Google Drive" width="40" height="40">`;
+    btn.style.marginLeft = "10px";
+    btn.onclick = uploadVideosToDrive; // upewnij się, że ta funkcja istnieje
+    return btn;
 }
 
 
+
 // ===============================
-// POLLING STATUS
+// COMPLETION (ZIP & DRIVE)
 // ===============================
 
-async function pollStatus() {
-    if (!currentTaskId) return;
+// Główna funkcja
+function checkGlobalVideoCompletion() {
+    const totalFiles = (document.getElementById("files_video") || {}).files?.length || 0;
+    const completed = Object.keys(finishedVideoTasks || {}).length;
+
+    console.log("checkGlobalVideoCompletion:", { totalFiles, completed, finishedVideoTasks, isDriveConnected });
+
+    if (totalFiles === 0) return;
+
+    if (totalFiles === completed) {
+        const statusDiv = document.getElementById("status");
+        if (!statusDiv) {
+            console.warn("Brak elementu #status w DOM");
+            return;
+        }
+
+        // Wyczyść status i przygotuj miejsce
+        statusDiv.innerHTML = "";
+
+        // Przycisk ZIP
+        const zipBtn = document.createElement("button");
+        zipBtn.className = "btn success-btn";
+        zipBtn.innerHTML = "Download All as ZIP";
+        zipBtn.onclick = () => {
+            const query = Object.values(finishedVideoTasks).join(",");
+            window.location.href = `/compress/video/download-multi?tasks=${encodeURIComponent(query)}`;
+        };
+        statusDiv.appendChild(zipBtn);
+
+        // Akcje (checkboxy, upload) - upewnij się, że są widoczne
+        const actionsEl = getActionsContainer();
+        actionsEl.classList.remove("hidden");
+        statusDiv.appendChild(actionsEl);
+
+        // Przycisk Drive - tylko jeśli połączenie jest aktywne
+        if (typeof isDriveConnected !== "undefined" && isDriveConnected) {
+            // Tworzymy nowy przycisk (nie przenosimy istniejącego elementu z DOM)
+            const driveBtn = createGoogleDriveUploadButton();
+            statusDiv.appendChild(driveBtn);
+        } else {
+            console.log("Drive not connected or isDriveConnected is false");
+        }
+    }
+}
+
+
+async function uploadVideosToDrive() {
+
+    const selected = Array.from(document.querySelectorAll(".file-select:checked"))
+        .map(cb => finishedVideoTasks[cb.getAttribute("data-filename")]);
+    
+    if (!selected.length) return alert("Select videos first!");
+
+    const btn = document.getElementById("googleDriveBtnUpload");
+    btn.disabled = true;
+    btn.innerText = "Uploading...";   
 
     try {
-        const res = await fetch(`/compress/video/status/${currentTaskId}`);
+        const res = await fetch("/compress/video/upload-to-drive", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(selected)
+        });
         const data = await res.json();
-
-        console.log("pollStatus:", data);
-
-        if (data.error) {
-            statusBox.innerHTML = "Błąd: " + data.error;
-            return;
+        console.log("uploadVideosToDrive response:", data);
+        alert(`Uploaded ${data.uploaded.length} videos to Drive!`);
+        if (data.uploaded.length > 0) {
+            btn.disabled = false;
+            btn.innerText = "Reconnect to Drive and Try Again";
+            btn.onclick = () => window.location.href = "/auth/google-drive";
+            // btn.onclick = connectToDrive;
+            // return;
+        } 
+        if (data.uploaded.length > 0) {
+            btn.innerText = "Uploaded!";
         }
-
-        // Kolejka
-        if (data.queue_position > 0) {
-            statusBox.innerHTML = `Przed tobą ${data.queue_position} użytkowników...`;
-        } else if (data.status === "processing") {
-            statusBox.innerHTML = data.message || "Twoje zadanie jest przetwarzane...";
-        }
-
-        // Upewnij się, że UI paska istnieje
-        const fillEl = document.getElementById("videoProgressFill");
-        const labelEl = document.getElementById("videoProgressLabel");
-
-        if (data.progress !== undefined && fillEl && labelEl) {
-            const pct = Math.max(0, Math.min(100, Number(data.progress)));
-            fillEl.style.width = `${pct}%`;
-            labelEl.textContent = `${pct}%`;
-
-            // Kolor zależny od wartości
-            if (pct < 40) {
-                fillEl.style.background = "linear-gradient(90deg,#f44336,#ff7043)"; // czerwony
-            } else if (pct < 80) {
-                fillEl.style.background = "linear-gradient(90deg,#ffb300,#ffca28)"; // pomarańcz
-            } else {
-                fillEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)"; // zielony
-            }
-        }
-
-        // Zakończone
-        if (data.status === "done") {
-            statusBox.innerHTML = "Kompresja zakończona!";
-            // zostaw pasek na 100% przez chwilę, potem wyczyść
-            setTimeout(() => {
-                document.getElementById("fileProgressContainer").innerHTML = "";
-            }, 1200);
-
-            downloadVideo(currentTaskId);
-            return;
-        }
-
-        // Błąd
-        if (data.status === "error") {
-            statusBox.innerHTML = "Błąd: " + data.error;
-            return;
-        }
-
-        // Poll co 1 sekundę
-        setTimeout(pollStatus, 1000);
-
-    } catch (err) {
-        statusBox.innerHTML = "Błąd połączenia.";
+    } catch (e) { 
+        console.error("Error uploading videos to Drive:", e);
+        alert("Upload failed.");
+        btn.disabled = false;
+        btn.innerText = "Upload to Drive";
     }
 }
 
 
-
-// ===============================
-// DOWNLOAD RESULT
-// ===============================
-
-async function downloadVideo(taskId) {
-    const res = await fetch(`/compress/video/download/${taskId}`);
-
-    if (!res.ok) {
-        statusBox.innerHTML = "Błąd pobierania pliku.";
-        return;
-    }
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "compressed_video.mp4";
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-
-
-
-// =========================
-// WARNING MODAL
-// =========================
-function showWarning(i18nKey, dynamicText = "") {
-    const modal = document.getElementById("warningModal");
-    const msgTooMany = document.getElementById("warningTooMany");
-    const msgTooBig = document.getElementById("warningTooBig");
-    const btn = document.getElementById("warningClose");
-
-    // Reset widoczności
-    msgTooMany.classList.add("hidden");
-    msgTooBig.classList.add("hidden");
-
-    // Wybór komunikatu
-    if (i18nKey === "warning_too_many_files") {
-        msgTooMany.classList.remove("hidden");
-    }
-
-    if (i18nKey === "warning_file_too_big") {
-        msgTooBig.classList.remove("hidden");
-
-        // dynamiczny tekst (np. nazwa pliku)
-        if (dynamicText) {
-            msgTooBig.textContent = dynamicText;
+async function connectToDrive() {
+    const btn = document.getElementById("googleDriveBtn");
+    btn.disabled = true;
+    btn.innerText = "Connecting...";
+    try {
+        const res = await fetch("/auth/google-drive");
+        if (res.status === 200) {
+            btn.innerText = "Connected! Upload to Drive aganin.";
+        } else {
+            btn.innerText = "Failed to connect. Try again.";
         }
-    }
-
-    // Odśwież tłumaczenia
-    if (typeof applyTranslations === "function") {
-        applyTranslations();
-    }
-
-    modal.classList.remove("hidden");
-
-    btn.onclick = () => {
-        modal.classList.add("hidden");
-    };
+    } catch (e) {
+        btn.innerText = "Error connecting. Try again later.";
+    }   
 }

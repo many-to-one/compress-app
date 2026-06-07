@@ -8,6 +8,8 @@ const driveActions = document.getElementById("drive-actions");
 const googleDriveBtn = document.getElementById("googleDriveBtn");
 let actions = null;
 
+const imgCompBtn = document.getElementById("startImagesBtn");
+
 document.addEventListener("DOMContentLoaded", () => {
     actions = document.getElementById("drive-actions");
 });
@@ -55,6 +57,8 @@ async function updateDriveButton() {
 // =========================
 
 function renderFiles(files) {
+
+    if (files.length) imgCompBtn.classList.remove("hidden");
 
     const container = document.getElementById("fileProgressContainer");
 
@@ -214,21 +218,33 @@ dropZone.addEventListener("drop", (e) => {
 // SUBMIT
 // =========================
 
-document.getElementById("uploadForm").onsubmit = async (e) => {
+// document.getElementById("uploadForm").onsubmit = async (e) => {
 
-    e.preventDefault();
+//     // submitter to przycisk, który wywołał submit
+//     const submitter = e.submitter || document.activeElement;
 
-    const files = Array.from(
-        document.getElementById("files").files
-    );
+//     if (!submitter) {
+//         // fallback: nic nie rób
+//         e.preventDefault();
+//         return;
+//     }
 
-    if (!files.length) return;
+//     if (submitter.id === "startImagesBtn") {
 
-    document.getElementById("status").innerHTML =
-        `<p class="neon-text">Processing ${files.length} files...</p>`;
+//         e.preventDefault();
+//         const files = Array.from(
+//             document.getElementById("files").files
+//         );
 
-    await processQueue(files);
-};
+//         if (!files.length) return;
+
+//         document.getElementById("status").innerHTML =
+//             `<p class="neon-text">Processing ${files.length} files...</p>`;
+
+        
+//         await processQueue(files);
+//     }
+// };
 
 // =========================
 // CONCURRENCY QUEUE
@@ -551,8 +567,11 @@ async function uploadSelectedToDrive() {
         console.log("uploadSelectedToDrive", res)
 
         if (res.status === 401) {
-            window.location.href = "/auth/google-drive";
-            return;
+            // window.location.href = "/auth/google-drive";
+            // return;
+            btn.disabled = false;
+            btn.innerText = "Reconnect to Drive and Try Again";
+            btn.onclick = () => window.location.href = "/auth/google-drive";
         }
 
         const data = await res.json();
@@ -568,6 +587,21 @@ async function uploadSelectedToDrive() {
 // Wywołaj sprawdzenie statusu przy ładowaniu
 checkDriveStatus();
 
+// async function connectToDrive() {
+//     const btn = document.getElementById("googleDriveBtn");
+//     btn.disabled = true;
+//     btn.innerText = "Connecting...";
+//     try {
+//         const res = await fetch("/auth/google-drive");
+//         if (res.status === 200) {
+//             btn.innerText = "Connected! Upload to Drive aganin.";
+//         } else {
+//             btn.innerText = "Failed to connect. Try again.";
+//         }
+//     } catch (e) {
+//         btn.innerText = "Error connecting. Try again later.";
+//     }   
+// }
 
 // =========================
 // WARNING MODAL
@@ -607,3 +641,11 @@ function showWarning(i18nKey, dynamicText = "") {
         modal.classList.add("hidden");
     };
 }
+
+
+window.processQueue = processQueue;
+window.uploadSelectedToDrive = uploadSelectedToDrive;
+window.showWarning = showWarning;
+window.updateDriveButton = updateDriveButton;
+window.actions = actions;
+window.isDriveConnected = isDriveConnected;

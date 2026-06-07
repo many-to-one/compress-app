@@ -239,11 +239,14 @@ def video_status(task_id: str):
 
     position = video_queue_manager.video_queue.get_position(task_id)
 
+    print(f"===Status for {task_id}: {task.compressed_size}======= ")
+
     return {
         "status": task.status,
         "progress": task.progress,
         "error": task.error,
         "queue_position": position,
+        "compressed_size": task.compressed_size,
         "message": f"Przed tobą {position} użytkowników..." if position > 0 else "Twoje zadanie jest przetwarzane."
     }
 
@@ -259,3 +262,75 @@ def download_video(task_id: str):
         media_type="video/mp4",
         headers={"Content-Disposition": "attachment; filename=compressed.mp4"}
     )
+
+
+
+
+@router.get("/video/download-multi")
+async def video_download_multi(tasks: str = Query(...)):
+    q = video_queue_manager.video_queue # Upewnij się, że masz dostęp do właściwej kolejki
+    task_ids = tasks.split(",")
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for tid in task_ids:
+            task = q.get_task(tid)
+            if task and task.status == "done":
+                # VideoTask przechowuje wynik w task.result (jako bytes)
+                zf.writestr(task.file_data["filename"], task.result)
+    zip_buffer.seek(0)
+    return StreamingResponse(zip_buffer, media_type="application/zip", headers={"Content-Disposition": 'attachment; filename="videos.zip"'})
+
+
+
+@router.post("/video/upload-to-drive")
+async def upload_video_to_drive(
+    request: Request, 
+    task_ids: list[str], 
+    db: AsyncSession = Depends(get_db)
+):
+    user = await get_current_user(request, db)
+    if not user or not user.google_drive_access_token:
+        raise HTTPException(401, "Google Drive not connected")
+
+    q = video_queue_manager.video_queue
+    uploaded = []
+
+    for tid in task_ids:
+        task = q.get_task(tid)
+        if not task or not task.result: 
+            continue
+
+        # W VideoTask używamy .file_data["filename"] oraz .result
+        filename = task.file_data["filename"]
+        data = task.result 
+
+        print(f'========= Uploading video: {filename} ==========')
+
+        # Google Drive Multipart Upload
+        metadata = {"name": filename}
+        files = {
+            'metadata': (None, json.dumps(metadata), 'application/json'),
+            'file': (filename, data)
+        }
+        headers = {"Authorization": f"Bearer {user.google_drive_access_token}"}
+        
+        try:
+            r = requests.post(
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+                headers=headers,
+                files=files,
+                timeout=60 # Wideo może być duże, dajemy więcej czasu
+            )
+            
+            if r.status_code == 200:
+                uploaded.append(filename)
+                print(f'Success: {filename}')
+            elif r.status_code == 401:
+                raise HTTPException(401, "Token expired. Reconnect Drive.")
+            else:
+                print(f'Drive error {r.status_code}: {r.text}')
+                
+        except Exception as e:
+            print(f"Request failed for {filename}: {e}")
+
+    return {"status": "ok", "uploaded": uploaded}

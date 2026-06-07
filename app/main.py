@@ -55,6 +55,8 @@ PUBLIC_PATHS = {
     "/auth/forgot-password",
     "/auth/reset-password",
     "/auth/google",
+    "/docs",
+    "/openapi.json",
 }
 
 PUBLIC_PREFIXES = [
