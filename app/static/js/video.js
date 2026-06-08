@@ -34,24 +34,37 @@ function updateVideoSizes(files) {
 // =========================
 document.getElementById("files_video").onchange = (e) => {
 
-    const files = e.target.files;
+    const dtFiles = e.target.files;
+    const closeBtn = document.getElementById("warningClose");
 
     // LIMIT: tylko 1 film
-    if (files.length > 3) {
-        showWarning("Możesz przesłać tylko 3 filmy.");
+    if (dtFiles.length > 3) {
+        showVideoWarning("warning_video_too_many_files");
+        closeBtn.addEventListener("click", () => {
+            window.location.href = "/";
+        });
         return;
     }
 
-    // LIMIT: max 5 minut (sprawdzimy backendem)
-    // LIMIT: max 350 MB (opcjonalnie)
-    const sizeMB = files[0].size / 1024 / 1024;
-    if (sizeMB > 350) {
-        showWarning("Rozmiar pliku(-ów) jest zbyt duży (max 350 MB).");
-        return;
+    // LIMIT: max 350 MB
+    for (const f of dtFiles) {
+        console.log('Drop --- Processing file:', f);
+        if (f.type.startsWith("video/")) {
+            const sizeMB = f.size / 1024 / 1024;
+            console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
+            if (sizeMB > 350) {
+                showVideoWarning("warning_video_file_too_big");
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+        } 
     }
 
-    renderVideoFiles(files);
-    updateVideoSizes(files);
+
+    renderVideoFiles(dtFiles);
+    updateVideoSizes(dtFiles);
 };
 
 
@@ -84,18 +97,31 @@ dropZone.addEventListener("drop", (e) => {
     e.stopPropagation();
 
     const dtFiles = e.dataTransfer.files;
+    const closeBtn = document.getElementById("warningClose");
 
     // LIMIT: tylko 1 film
     if (dtFiles.length > 3) {
-        showWarning("Możesz przesłać tylko 3 filmy.");
+        showVideoWarning("warning_video_too_many_files");
+        closeBtn.addEventListener("click", () => {
+            window.location.href = "/";
+        });
         return;
     }
 
     // LIMIT: max 350 MB
-    const sizeMB = dtFiles[0].size / 1024 / 1024;
-    if (sizeMB > 350) {
-        showWarning("warning_file_too_big", `„${dtFiles[0].name}” jest większy niż 350 MB`);
-        return;
+    for (const f of dtFiles) {
+        console.log('Drop --- Processing file:', f);
+        if (f.type.startsWith("video/")) {
+            const sizeMB = f.size / 1024 / 1024;
+            console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
+            if (sizeMB > 350) {
+                showVideoWarning("warning_video_file_too_big");
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+        } 
     }
 
     document.getElementById("files_video").files = dtFiles;
@@ -110,6 +136,23 @@ dropZone.addEventListener("drop", (e) => {
 
 
 
+// function updateProgressUI(safeId, pct, finished = false) {
+//     const block = document.getElementById(`file-${safeId}`);
+//     if (!block) return;
+
+//     const fillEl = block.querySelector(".progress-fill");
+//     const labelEl = block.querySelector(".progress-label");
+
+//     const pctNum = Math.max(0, Math.min(100, Number(pct || 0)));
+//     if (fillEl) fillEl.style.width = `${pctNum}%`;
+//     if (labelEl) labelEl.textContent = `${pctNum}%`;
+
+//     // opcjonalne style końcowe
+//     if (finished) {
+//         if (fillEl) fillEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+//     }
+// }
+
 function updateProgressUI(safeId, pct, finished = false) {
     const block = document.getElementById(`file-${safeId}`);
     if (!block) return;
@@ -118,14 +161,26 @@ function updateProgressUI(safeId, pct, finished = false) {
     const labelEl = block.querySelector(".progress-label");
 
     const pctNum = Math.max(0, Math.min(100, Number(pct || 0)));
-    if (fillEl) fillEl.style.width = `${pctNum}%`;
-    if (labelEl) labelEl.textContent = `${pctNum}%`;
+    
+    if (fillEl) {
+        fillEl.style.width = `${pctNum}%`;
+        
+        // Opcjonalna zmiana koloru w zależności od postępu dla wideo
+        if (pctNum < 100) {
+            block.classList.add("active");
+        }
+    }
+    
+    if (labelEl) {
+        labelEl.textContent = `${Math.floor(pctNum)}%`;
+    }
 
-    // opcjonalne style końcowe
-    if (finished) {
-        if (fillEl) fillEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
+    if (finished || pctNum === 100) {
+        block.classList.remove("active");
+        block.classList.add("success");
     }
 }
+
 
 function updateErrorUI(safeId, errorMsg = "Błąd") {
     const block = document.getElementById(`file-${safeId}`);
@@ -138,44 +193,61 @@ function updateErrorUI(safeId, errorMsg = "Błąd") {
 }
 
 
-// // =========================
-// // WARNING MODAL
-// // =========================
-// function showWarning(i18nKey, dynamicText = "") {
-//     const modal = document.getElementById("warningModal");
-//     const msgTooMany = document.getElementById("warningTooMany");
-//     const msgTooBig = document.getElementById("warningTooBig");
-//     const btn = document.getElementById("warningClose");
-
-//     // Reset widoczności
-//     msgTooMany.classList.add("hidden");
-//     msgTooBig.classList.add("hidden");
-
-//     // Wybór komunikatu
-//     if (i18nKey === "warning_too_many_files") {
-//         msgTooMany.classList.remove("hidden");
-//     }
-
-//     if (i18nKey === "warning_file_too_big") {
-//         msgTooBig.classList.remove("hidden");
-
-//         // dynamiczny tekst (np. nazwa pliku)
-//         if (dynamicText) {
-//             msgTooBig.textContent = dynamicText;
-//         }
-//     }
-
-//     // Odśwież tłumaczenia
-//     if (typeof applyTranslations === "function") {
-//         applyTranslations();
-//     }
-
-//     modal.classList.remove("hidden");
-
-//     btn.onclick = () => {
-//         modal.classList.add("hidden");
-//     };
+// =========================
+// WARNING MODAL
+// =========================
+// function showVideoWarning(i18nKey, dynamicText = "") {
+//     console.log("showVideoWarning called with:", { i18nKey, dynamicText });
+//     document.getElementById("status").innerHTML =
+//             `<p class="neon-text" i18n="${i18nKey}">${dynamicText}</p>`;
 // }
+
+function showVideoWarning(i18nKey, dynamicText = "") {
+    const modal = document.getElementById("warningModal");
+    const msgVideoTooMany = document.getElementById("warningVideoTooMany");
+    const msgVideoTooBig = document.getElementById("warningVideoTooBig");
+    const msgInvalidFileType = document.getElementById("warningInvalidFileType");
+    const btn = document.getElementById("warningClose");
+
+    // Reset widoczności
+    msgVideoTooMany.classList.add("hidden");
+    msgVideoTooBig.classList.add("hidden");
+    msgInvalidFileType.classList.add("hidden");
+
+    // Wybór komunikatu
+    if (i18nKey === "warning_video_too_many_files") {
+        msgVideoTooMany.classList.remove("hidden");
+    }
+
+    if (i18nKey === "warning_video_file_too_big") {
+        msgVideoTooBig.classList.remove("hidden");
+
+        // dynamiczny tekst (np. nazwa pliku)
+        if (dynamicText) {
+            msgVideoTooBig.textContent = dynamicText;
+        }
+    }
+
+    if (i18nKey === "warning_invalid_file_type") {
+        msgInvalidFileType.classList.remove("hidden");
+
+        // dynamiczny tekst (np. nazwa pliku)
+        if (dynamicText) {
+            msgInvalidFileType.textContent = dynamicText;
+        }
+    }
+
+    // Odśwież tłumaczenia
+    if (typeof applyTranslations === "function") {
+        applyTranslations();
+    }
+
+    modal.classList.remove("hidden");
+
+    btn.onclick = () => {
+        modal.classList.add("hidden");
+    };
+}
 
 
 async function uploadSelectedToDrive() {
@@ -280,7 +352,8 @@ function renderVideoFiles(files) {
                     <div class="file-name">${f.name}</div>
                     <div class="progress-wrapper">
                         <div class="progress-bar">
-                            <div class="progress-fill"></div>
+                            <!-- DODANO KLASĘ neon-fill -->
+                            <div class="progress-fill neon-fill" style="width: 0%"></div>
                         </div>
                         <div class="progress-label">0%</div>
                     </div>
@@ -356,6 +429,10 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
 async function videoWorker(queue) {
     while (queue.length > 0) {
         const file = queue.shift();
+        if (!file.type.startsWith("video/")) {
+            showVideoWarning("warning_invalid_file_type", `„${file.name}”`);    
+            return;
+        }
         if (file) await processSingleVideo(file);
     }
 }

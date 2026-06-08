@@ -66,6 +66,11 @@ function renderFiles(files) {
 
     for (let f of files) {
 
+        if (!f.type.startsWith("image/")) {
+            showWarning("warning_invalid_file_type", `„${f.name}”`);
+            return;
+        }
+
         console.log('renderFiles-----', f)
 
         const safeId = createSafeId(f.name);
@@ -76,40 +81,19 @@ function renderFiles(files) {
 
         container.innerHTML += `
             <div class="file-block" id="file-${safeId}">
-
-                <input                    
-                    type="checkbox" 
-                    class="file-select" 
-                    data-filename="${f.name}" id="check-${safeId}"
-                >
-
-                ${url
-                    ? `<img class="file-thumb" src="${url}" alt="">`
-                    : ""
-                }
-
+                <input type="checkbox" class="file-select" data-filename="${f.name}" id="check-${safeId}">
+                ${url ? `<img class="file-thumb" src="${url}" alt="">` : ""}
                 <div class="file-size" id="size-${safeId}"></div>
-
                 <div class="file-b">
-
-                    <div class="file-name">
-                        ${f.name}
-                    </div>
-
+                    <div class="file-name">${f.name}</div>
                     <div class="progress-wrapper">
-
                         <div class="progress-bar">
-                            <div class="progress-fill"></div>
+                            <!-- DODANO KLASĘ neon-fill -->
+                            <div class="progress-fill neon-fill" style="width: 0%"></div>
                         </div>
-
-                        <div class="progress-label">
-                            0%
-                        </div>
-
+                        <div class="progress-label">0%</div>
                     </div>
-
                 </div>
-
             </div>
         `;
     }
@@ -142,7 +126,28 @@ function updateFileSizes(files) {
 
 document.getElementById("files").onchange = (e) => {
 
-    const files = e.target.files;
+    // const files = e.target.files;
+
+    const dtFiles = e.target.files;
+    console.log('Drop --- Processing dtFiles:', dtFiles);
+
+    // --- LIMIT: max 20 plików ---
+    if (dtFiles.length > 20) {
+        showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
+        return;
+    }
+
+    // --- LIMIT: max 7 MB ---
+    for (const f of dtFiles) {
+        console.log('Drop --- Processing file:', f);
+        if (f.type.startsWith("image/")) {
+            const sizeMB = f.size / 1024 / 1024;
+            if (sizeMB > 7) {
+                showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
+                return;
+            }
+        }
+    }
 
     renderFiles(files);
 
@@ -184,20 +189,32 @@ dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     e.stopPropagation();
 
+    const closeBtn = document.getElementById("warningClose");
+
     const dtFiles = e.dataTransfer.files;
+    console.log('Drop --- Processing dtFiles:', dtFiles);
 
     // --- LIMIT: max 20 plików ---
     if (dtFiles.length > 20) {
         showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
+        closeBtn.addEventListener("click", () => {
+            window.location.href = "/";
+        });
         return;
     }
 
     // --- LIMIT: max 7 MB ---
     for (const f of dtFiles) {
-        const sizeMB = f.size / 1024 / 1024;
-        if (sizeMB > 7) {
-            showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
-            return;
+        console.log('Drop --- Processing file:', f);
+        if (f.type.startsWith("image/")) {
+            const sizeMB = f.size / 1024 / 1024;
+            if (sizeMB > 7) {
+                showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
         }
     }
 
@@ -215,36 +232,9 @@ dropZone.addEventListener("drop", (e) => {
 
 
 // =========================
-// SUBMIT
+// SUBMIT is in video.js
 // =========================
 
-// document.getElementById("uploadForm").onsubmit = async (e) => {
-
-//     // submitter to przycisk, który wywołał submit
-//     const submitter = e.submitter || document.activeElement;
-
-//     if (!submitter) {
-//         // fallback: nic nie rób
-//         e.preventDefault();
-//         return;
-//     }
-
-//     if (submitter.id === "startImagesBtn") {
-
-//         e.preventDefault();
-//         const files = Array.from(
-//             document.getElementById("files").files
-//         );
-
-//         if (!files.length) return;
-
-//         document.getElementById("status").innerHTML =
-//             `<p class="neon-text">Processing ${files.length} files...</p>`;
-
-        
-//         await processQueue(files);
-//     }
-// };
 
 // =========================
 // CONCURRENCY QUEUE
@@ -268,6 +258,11 @@ async function worker(queue) {
     while (queue.length > 0) {
 
         const file = queue.shift();
+
+        if (!file.type.startsWith("image/")) {
+            showWarning("warning_invalid_file_type", `„${file.name}”`);
+            return;
+        }
 
         if (!file) return;
 
@@ -491,30 +486,54 @@ function checkGlobalCompletion() {
 // UI
 // =========================
 
-function updateProgressUI(
-    safeId,
-    value,
-    isFinal = false
-) {
+// function updateProgressUI(
+//     safeId,
+//     value,
+//     isFinal = false
+// ) {
 
-    const block =
-        document.getElementById(`file-${safeId}`);
+//     const block =
+//         document.getElementById(`file-${safeId}`);
 
+//     if (!block) return;
+
+//     const fill =
+//         block.querySelector(".progress-fill");
+
+//     const label =
+//         block.querySelector(".progress-label");
+
+//     fill.style.width = value + "%";
+
+//     label.textContent =
+//         Math.floor(value) + "%";
+
+//     if (isFinal) {
+//         block.classList.add("success");
+//     }
+// }
+
+function updateProgressUI(safeId, value, isFinal = false) {
+    const block = document.getElementById(`file-${safeId}`);
     if (!block) return;
 
-    const fill =
-        block.querySelector(".progress-fill");
+    const fill = block.querySelector(".progress-fill");
+    const label = block.querySelector(".progress-label");
 
-    const label =
-        block.querySelector(".progress-label");
+    if (fill) {
+        fill.style.width = value + "%";
+    }
+    if (label) {
+        label.textContent = Math.floor(value) + "%";
+    }
 
-    fill.style.width = value + "%";
+    if (value > 0 && value < 100) {
+        block.classList.add("active"); // Pulsowanie neonu podczas pracy
+    }
 
-    label.textContent =
-        Math.floor(value) + "%";
-
-    if (isFinal) {
-        block.classList.add("success");
+    if (isFinal || value === 100) {
+        block.classList.remove("active");
+        block.classList.add("success"); // Flash na koniec
     }
 }
 
@@ -612,11 +631,13 @@ function showWarning(i18nKey, dynamicText = "") {
     const modal = document.getElementById("warningModal");
     const msgTooMany = document.getElementById("warningTooMany");
     const msgTooBig = document.getElementById("warningTooBig");
+    const msgInvalidFileType = document.getElementById("warningInvalidFileType");
     const btn = document.getElementById("warningClose");
 
     // Reset widoczności
     msgTooMany.classList.add("hidden");
     msgTooBig.classList.add("hidden");
+    msgInvalidFileType.classList.add("hidden");
 
     // Wybór komunikatu
     if (i18nKey === "warning_too_many_files") {
@@ -629,6 +650,15 @@ function showWarning(i18nKey, dynamicText = "") {
         // dynamiczny tekst (np. nazwa pliku)
         if (dynamicText) {
             msgTooBig.textContent = dynamicText;
+        }
+    }
+
+    if (i18nKey === "warning_invalid_file_type") {
+        msgInvalidFileType.classList.remove("hidden");
+
+        // dynamiczny tekst (np. nazwa pliku)
+        if (dynamicText) {
+            msgInvalidFileType.textContent = dynamicText;
         }
     }
 
@@ -647,7 +677,7 @@ function showWarning(i18nKey, dynamicText = "") {
 
 window.processQueue = processQueue;
 window.uploadSelectedToDrive = uploadSelectedToDrive;
-window.showWarning = showWarning;
+// window.showWarning = showWarning;
 window.updateDriveButton = updateDriveButton;
 window.actions = actions;
 window.isDriveConnected = isDriveConnected;
