@@ -99,7 +99,7 @@ function renderFiles(files) {
                     <div class="progress-wrapper">
 
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width:0%"></div>
+                            <div class="progress-fill"></div>
                         </div>
 
                         <div class="progress-label">
@@ -343,7 +343,8 @@ async function checkSingleFileStatus(
 
                 updateProgressUI(
                     safeId,
-                    data.progress || 0
+                    data.progress || 0,
+                    false
                 );
 
                 if (data.status === "done") {
@@ -553,7 +554,7 @@ async function uploadSelectedToDrive() {
         return;
     }
 
-    const btn = document.getElementById("googleDriveBtn");
+    const btn = document.getElementById("googleDriveBtnUpload");
     btn.disabled = true;
     btn.innerText = "Uploading...";
 
@@ -575,7 +576,8 @@ async function uploadSelectedToDrive() {
         }
 
         const data = await res.json();
-        alert(`Successfully uploaded ${data.uploaded.length} files to Google Drive!`);
+        // alert(`Successfully uploaded ${data.uploaded.length} files to Google Drive!`);
+        btn.innerText = "Upload completed";
     } catch (e) {
         alert("Upload failed.");
     } finally {

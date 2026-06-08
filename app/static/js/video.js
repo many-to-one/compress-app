@@ -280,7 +280,7 @@ function renderVideoFiles(files) {
                     <div class="file-name">${f.name}</div>
                     <div class="progress-wrapper">
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width:0%"></div>
+                            <div class="progress-fill"></div>
                         </div>
                         <div class="progress-label">0%</div>
                     </div>
