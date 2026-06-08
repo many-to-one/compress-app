@@ -34,22 +34,24 @@ function updateVideoSizes(files) {
 // =========================
 document.getElementById("files_video").onchange = (e) => {
 
-    const dtFiles = e.target.files;
+    const dtVFiles = e.target.files;
     const closeBtn = document.getElementById("warningClose");
 
-    // LIMIT: tylko 1 film
-    if (dtFiles.length > 3) {
-        showVideoWarning("warning_video_too_many_files");
-        closeBtn.addEventListener("click", () => {
-            window.location.href = "/";
-        });
-        return;
-    }
-
     // LIMIT: max 350 MB
-    for (const f of dtFiles) {
-        console.log('Drop --- Processing file:', f);
+    for (const f of dtVFiles) {
+
         if (f.type.startsWith("video/")) {
+
+            console.log('Drop --- Processing video file:', f);
+
+            if (dtVFiles.length > 3) {
+                showVideoWarning("warning_video_too_many_files");
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+
             const sizeMB = f.size / 1024 / 1024;
             console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
             if (sizeMB > 350) {
@@ -59,12 +61,39 @@ document.getElementById("files_video").onchange = (e) => {
                 });
                 return;
             }
+
+            renderVideoFiles(dtVFiles);
+            updateVideoSizes(dtVFiles);
         } 
+
+        else if (f.type.startsWith("image/")) {
+
+            console.log('Drop --- Processing img file:', f);
+
+            // --- LIMIT: max 20 plików ---
+            if (dtVFiles.length > 20) {
+                showVideoWarning("warning_video_too_many_files", `(${dtVFiles.length} files)`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+
+            const sizeMB = f.size / 1024 / 1024;
+            if (sizeMB > 7) {
+                showVideoWarning("warning_video_file_too_big", `„${f.name}” > 7 MB`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+
+            renderFiles(dtVFiles);
+
+            updateFileSizes(dtVFiles);
+        }
     }
 
-
-    renderVideoFiles(dtFiles);
-    updateVideoSizes(dtFiles);
 };
 
 
@@ -95,43 +124,54 @@ document.getElementById("files_video").onchange = (e) => {
 dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    const imgCompBtn = document.getElementById("startImagesBtn");
 
-    const dtFiles = e.dataTransfer.files;
-    const closeBtn = document.getElementById("warningClose");
+    // for (const f of e.dataTransfer.files) {
+    //     if (f.type.startsWith("video/")) {
+    //          console.log('Drop --- Processing video file:', f);
+    //         const imgCompBtn = document.getElementById("startImagesBtn");
+    //         imgCompBtn.classList.add("hidden");
+    //     }
+    //      if (f.type.startsWith("image/")) {
+    //         console.log('Drop --- Processing img file:', f);
+    //         videoCompBtn.classList.add("hidden");
+    //     }
+    // }
 
-    // LIMIT: tylko 1 film
-    if (dtFiles.length > 3) {
-        showVideoWarning("warning_video_too_many_files");
-        closeBtn.addEventListener("click", () => {
-            window.location.href = "/";
-        });
-        return;
-    }
+        if (e.dataTransfer.files[0].type.startsWith("video/")) {
+            //  console.log('Drop --- Processing video file:', f);
+            videoCompBtn.classList.remove("hidden");
+            imgCompBtn.classList.add("hidden");
 
-    // LIMIT: max 350 MB
-    for (const f of dtFiles) {
-        console.log('Drop --- Processing file:', f);
-        if (f.type.startsWith("video/")) {
-            const sizeMB = f.size / 1024 / 1024;
-            console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
-            if (sizeMB > 350) {
-                showVideoWarning("warning_video_file_too_big");
-                closeBtn.addEventListener("click", () => {
-                    window.location.href = "/";
-                });
-                return;
-            }
-        } 
-    }
+            const dtVFiles = e.dataTransfer.files;
+            const closeBtn = document.getElementById("warningClose");
 
-    document.getElementById("files_video").files = dtFiles;
 
-    renderVideoFiles(dtFiles);
-    updateVideoSizes(dtFiles);
+            document.getElementById("files_video").files = dtVFiles;
 
-    document.getElementById("fileProgressContainer").scrollIntoView({
-        behavior: "smooth"
-    });
+            renderVideoFiles(dtVFiles);
+            updateVideoSizes(dtVFiles);
+
+            document.getElementById("fileProgressContainer").scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+         if (e.dataTransfer.files[0].type.startsWith("image/")) {
+            // console.log('Drop --- Processing img file:', f);
+            videoCompBtn.classList.add("hidden");
+            imgCompBtn.classList.remove("hidden");
+
+            document.getElementById("files").files = dtFiles;
+
+            renderFiles(dtFiles);
+            updateFileSizes(dtFiles);
+
+            document.getElementById("fileProgressContainer").scrollIntoView({
+                behavior: "smooth"
+            });
+
+        }
+    
 });
 
 
@@ -430,6 +470,7 @@ async function videoWorker(queue) {
     while (queue.length > 0) {
         const file = queue.shift();
         if (!file.type.startsWith("video/")) {
+            console.warn(`Skipping unsupported file type: ${file.name}`);
             showVideoWarning("warning_invalid_file_type", `„${file.name}”`);    
             return;
         }

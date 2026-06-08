@@ -194,38 +194,39 @@ dropZone.addEventListener("drop", (e) => {
     const dtFiles = e.dataTransfer.files;
     console.log('Drop --- Processing dtFiles:', dtFiles);
 
-    // --- LIMIT: max 20 plików ---
-    if (dtFiles.length > 20) {
-        showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
-        closeBtn.addEventListener("click", () => {
-            window.location.href = "/";
-        });
-        return;
-    }
+    // // --- LIMIT: max 7 MB ---
+    // for (const f of dtFiles) {
+    //     console.log('Drop --- Processing file:', f);
+    //     if (f.type.startsWith("image/")) {
 
-    // --- LIMIT: max 7 MB ---
-    for (const f of dtFiles) {
-        console.log('Drop --- Processing file:', f);
-        if (f.type.startsWith("image/")) {
-            const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7) {
-                showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
-                closeBtn.addEventListener("click", () => {
-                    window.location.href = "/";
-                });
-                return;
-            }
-        }
-    }
+    //         // --- LIMIT: max 20 plików ---
+    //         if (dtFiles.length > 20) {
+    //             showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
+    //             closeBtn.addEventListener("click", () => {
+    //                 window.location.href = "/";
+    //             });
+    //             return;
+    //         }
 
-    document.getElementById("files").files = dtFiles;
+    //         const sizeMB = f.size / 1024 / 1024;
+    //         if (sizeMB > 7) {
+    //             showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
+    //             closeBtn.addEventListener("click", () => {
+    //                 window.location.href = "/";
+    //             });
+    //             return;
+    //         }
+    //     }
+    // }
 
-    renderFiles(dtFiles);
-    updateFileSizes(dtFiles);
+    // document.getElementById("files").files = dtFiles;
 
-    document.getElementById("fileProgressContainer").scrollIntoView({
-        behavior: "smooth"
-    });
+    // renderFiles(dtFiles);
+    // updateFileSizes(dtFiles);
+
+    // document.getElementById("fileProgressContainer").scrollIntoView({
+    //     behavior: "smooth"
+    // });
 });
 
 
@@ -260,6 +261,7 @@ async function worker(queue) {
         const file = queue.shift();
 
         if (!file.type.startsWith("image/")) {
+            console.warn(`Skipping unsupported file type: ${file.name}`);
             showWarning("warning_invalid_file_type", `„${file.name}”`);
             return;
         }
@@ -681,3 +683,5 @@ window.uploadSelectedToDrive = uploadSelectedToDrive;
 window.updateDriveButton = updateDriveButton;
 window.actions = actions;
 window.isDriveConnected = isDriveConnected;
+window.renderFiles = renderFiles;
+window.updateFileSizes = updateFileSizes;
