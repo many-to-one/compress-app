@@ -102,6 +102,8 @@ document.getElementById("files_video").onchange = (e) => {
 // DRAG & DROP
 // ===============================
 
+let dropFotofiles = [];
+
 ["dragenter", "dragover", "dragleave", "drop"].forEach(ev => {
     dropZone.addEventListener(ev, (e) => {
         e.preventDefault();
@@ -125,73 +127,67 @@ dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
     e.stopPropagation();
     const imgCompBtn = document.getElementById("startImagesBtn");
+    const closeBtn = document.getElementById("warningClose");
 
-    // for (const f of e.dataTransfer.files) {
-    //     if (f.type.startsWith("video/")) {
-    //          console.log('Drop --- Processing video file:', f);
-    //         const imgCompBtn = document.getElementById("startImagesBtn");
-    //         imgCompBtn.classList.add("hidden");
-    //     }
-    //      if (f.type.startsWith("image/")) {
-    //         console.log('Drop --- Processing img file:', f);
-    //         videoCompBtn.classList.add("hidden");
-    //     }
-    // }
+    if (e.dataTransfer.files[0].type.startsWith("video/")) {
 
-        if (e.dataTransfer.files[0].type.startsWith("video/")) {
-            //  console.log('Drop --- Processing video file:', f);
-            videoCompBtn.classList.remove("hidden");
-            imgCompBtn.classList.add("hidden");
+        showVideoWarning("warning_video_too_many_files", `(${e.dataTransfer.files.length} files)`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+        //  console.log('Drop --- Processing video file:', f);
+        videoCompBtn.classList.remove("hidden");
+        imgCompBtn.classList.add("hidden");
 
-            const dtVFiles = e.dataTransfer.files;
-            const closeBtn = document.getElementById("warningClose");
+        const dtVFiles = e.dataTransfer.files;
+        const closeBtn = document.getElementById("warningClose");
 
 
-            document.getElementById("files_video").files = dtVFiles;
+        document.getElementById("files_video").files = dtVFiles;
 
-            renderVideoFiles(dtVFiles);
-            updateVideoSizes(dtVFiles);
+        renderVideoFiles(dtVFiles);
+        updateVideoSizes(dtVFiles);
 
-            document.getElementById("fileProgressContainer").scrollIntoView({
-                behavior: "smooth"
-            });
-        }
-         if (e.dataTransfer.files[0].type.startsWith("image/")) {
-            // console.log('Drop --- Processing img file:', f);
-            videoCompBtn.classList.add("hidden");
-            imgCompBtn.classList.remove("hidden");
+        document.getElementById("fileProgressContainer").scrollIntoView({
+            behavior: "smooth"
+        });
 
-            document.getElementById("files").files = dtFiles;
+    }
 
-            renderFiles(dtFiles);
-            updateFileSizes(dtFiles);
 
-            document.getElementById("fileProgressContainer").scrollIntoView({
-                behavior: "smooth"
-            });
+    if (e.dataTransfer.files[0].type.startsWith("image/")) {
 
-        }
+        if (e.dataTransfer.files.length > 20 ) {
+            showWarning("warning_too_many_files", `(${e.dataTransfer.files.length} files)`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+        };
+
+        console.log('Drop --- Processing img file:', e.dataTransfer.files[0]);
+        videoCompBtn.classList.add("hidden");
+        imgCompBtn.classList.remove("hidden");
+
+        // const dropFotofiles = document.getElementById("files").files;
+        dropFotofiles.push(...e.dataTransfer.files);
+        console.log('Drop --- dropFotofiles:', dropFotofiles);
+        console.log("Drop --- length(dropFotofiles)", dropFotofiles.length)
+
+        renderFiles(dropFotofiles);
+        updateFileSizes(dropFotofiles);
+
+        document.getElementById("fileProgressContainer").scrollIntoView({
+            behavior: "smooth"
+        });
+
+    }
     
 });
 
 
 
-// function updateProgressUI(safeId, pct, finished = false) {
-//     const block = document.getElementById(`file-${safeId}`);
-//     if (!block) return;
-
-//     const fillEl = block.querySelector(".progress-fill");
-//     const labelEl = block.querySelector(".progress-label");
-
-//     const pctNum = Math.max(0, Math.min(100, Number(pct || 0)));
-//     if (fillEl) fillEl.style.width = `${pctNum}%`;
-//     if (labelEl) labelEl.textContent = `${pctNum}%`;
-
-//     // opcjonalne style końcowe
-//     if (finished) {
-//         if (fillEl) fillEl.style.background = "linear-gradient(90deg,#4caf50,#8bc34a)";
-//     }
-// }
 
 function updateProgressUI(safeId, pct, finished = false) {
     const block = document.getElementById(`file-${safeId}`);
@@ -427,17 +423,13 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
     if (submitter.id === "startImagesBtn") {
 
         e.preventDefault();
-        const files = Array.from(
-            document.getElementById("files").files
-        );
 
-        if (!files.length) return;
+        // console.log("startImagesBtn-dropFotofiles", dropFotofiles)
 
         document.getElementById("status").innerHTML =
-            `<p class="neon-text">Processing ${files.length} files...</p>`;
+            `<p class="neon-text">Processing ${dropFotofiles.length} files...</p>`;
 
-        
-        await processQueue(files); //from batch.js
+        await processQueue(dropFotofiles); //from batch.js
         return;
     }
 
@@ -449,9 +441,6 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
         const files_video = Array.from(document.getElementById("files_video").files);
         if (!files_video.length) return;
 
-        const files = Array.from(
-            document.getElementById("files").files
-        );
 
         document.getElementById("status").innerHTML = `<p class="neon-text">Processing ${files_video.length} videos...</p>`;
         

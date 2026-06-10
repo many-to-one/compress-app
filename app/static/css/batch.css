@@ -201,9 +201,9 @@ input:checked + .slider:before {
     color: var(--neon2);
 }
 
-.file-b {
-    width: 100%;
-}
+/* .file-b {
+    width: 80%;
+} */
 
 /* FILE LIST */
 #fileProgressContainer {
@@ -405,7 +405,7 @@ body.compact .progress-bar {
 /* Poprawka dla kontenera pliku, żeby przycisk był widoczny */
 .file-b {
     display: block;
-    width: 100%;
+    width: 80%;
 }
 
 .file-name {

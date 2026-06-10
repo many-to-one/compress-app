@@ -149,9 +149,9 @@ document.getElementById("files").onchange = (e) => {
         }
     }
 
-    renderFiles(files);
+    renderFiles(dtFiles);
 
-    updateFileSizes(files);
+    updateFileSizes(dtFiles);
 };
 
 // =========================
@@ -185,14 +185,14 @@ const dropZone = document.getElementById("dropZone");
 
 
 
-dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+// dropZone.addEventListener("drop", (e) => {
+//     e.preventDefault();
+//     e.stopPropagation();
 
-    const closeBtn = document.getElementById("warningClose");
+//     const closeBtn = document.getElementById("warningClose");
 
-    const dtFiles = e.dataTransfer.files;
-    console.log('Drop --- Processing dtFiles:', dtFiles);
+//     const dtFiles = e.dataTransfer.files;
+//     console.log('Drop --- Processing dtFiles:', dtFiles);
 
     // // --- LIMIT: max 7 MB ---
     // for (const f of dtFiles) {
@@ -227,7 +227,7 @@ dropZone.addEventListener("drop", (e) => {
     // document.getElementById("fileProgressContainer").scrollIntoView({
     //     behavior: "smooth"
     // });
-});
+// });
 
 
 
@@ -244,6 +244,9 @@ dropZone.addEventListener("drop", (e) => {
 async function processQueue(files) {
 
     const queue = [...files];
+
+    console.log("processQueue-files", files)
+    console.log("processQueue queue", queue)
 
     const workers = [];
 
@@ -679,7 +682,7 @@ function showWarning(i18nKey, dynamicText = "") {
 
 window.processQueue = processQueue;
 window.uploadSelectedToDrive = uploadSelectedToDrive;
-// window.showWarning = showWarning;
+window.showWarning = showWarning;
 window.updateDriveButton = updateDriveButton;
 window.actions = actions;
 window.isDriveConnected = isDriveConnected;
