@@ -435,7 +435,14 @@ function showDownloadButton(
 
     dlBtn.className = "btn-mini";
 
-    dlBtn.innerHTML = "Download";
+    // dlBtn.innerHTML = "Download";
+    dlBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v12" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 9l6 6 6-6" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 21h16" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        `;
 
     dlBtn.download = filename;
 
@@ -465,7 +472,14 @@ function checkGlobalCompletion() {
 
     zipBtn.className = "btn success-btn";
 
-    zipBtn.innerHTML = "Download All as ZIP";
+    zipBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v12" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 9l6 6 6-6" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 21h16" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        </svg> ZIP
+        `;
+
 
     zipBtn.onclick = async () => {
 

@@ -393,7 +393,7 @@ body.compact .progress-bar {
 .success-btn {
     background: linear-gradient(90deg, #00ff87, #60efff);
     box-shadow: 0 0 20px #00ff87;
-    margin-top: 10px;
+    /* margin-top: 10px; */
 }
 
 .neon-text {

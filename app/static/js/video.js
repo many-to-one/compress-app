@@ -131,17 +131,17 @@ dropZone.addEventListener("drop", (e) => {
 
     if (e.dataTransfer.files[0].type.startsWith("video/")) {
 
-        showVideoWarning("warning_video_too_many_files", `(${e.dataTransfer.files.length} files)`);
+        if (e.dataTransfer.files.length > 3 ) {
+            showVideoWarning("warning_video_too_many_files", `(${e.dataTransfer.files.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
                 });
                 return;
-        //  console.log('Drop --- Processing video file:', f);
+        }
         videoCompBtn.classList.remove("hidden");
         imgCompBtn.classList.add("hidden");
 
         const dtVFiles = e.dataTransfer.files;
-        const closeBtn = document.getElementById("warningClose");
 
 
         document.getElementById("files_video").files = dtVFiles;
@@ -426,11 +426,23 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
 
         // console.log("startImagesBtn-dropFotofiles", dropFotofiles)
 
-        document.getElementById("status").innerHTML =
+        const files_img= Array.from(document.getElementById("files").files);
+        if (!files_img.length) {
+            document.getElementById("status").innerHTML =
             `<p class="neon-text">Processing ${dropFotofiles.length} files...</p>`;
 
-        await processQueue(dropFotofiles); //from batch.js
-        return;
+            await processQueue(dropFotofiles); //from batch.js
+            return;
+        } else if (files_img.length) {
+            document.getElementById("status").innerHTML =
+            `<p class="neon-text">Processing ${files_img.length} files...</p>`;
+
+            await processQueue(files_img); //from batch.js
+            return;
+        }
+
+
+
     }
 
 
@@ -527,7 +539,14 @@ function showDownloadButton(safeId, taskId, filename) {
     const dlBtn = document.createElement("a");
     dlBtn.href = `/compress/video/download/${taskId}`;
     dlBtn.className = "btn-mini";
-    dlBtn.innerHTML = "Download";
+    // dlBtn.innerHTML = "Download";
+    dlBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3v12" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6 9l6 6 6-6" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 21h16" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        `;
     dlBtn.download = filename;
     actionArea.prepend(dlBtn);
 }
@@ -589,7 +608,14 @@ function checkGlobalVideoCompletion() {
         // Przycisk ZIP
         const zipBtn = document.createElement("button");
         zipBtn.className = "btn success-btn";
-        zipBtn.innerHTML = "Download All as ZIP";
+        // zipBtn.innerHTML = "Download All as ZIP";
+        zipBtn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3v12" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 9l6 6 6-6" stroke="#141414" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 21h16" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+            </svg> ZIP
+            `;
         zipBtn.onclick = () => {
             const query = Object.values(finishedVideoTasks).join(",");
             window.location.href = `/compress/video/download-multi?tasks=${encodeURIComponent(query)}`;
