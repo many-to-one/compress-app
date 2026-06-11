@@ -36,12 +36,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: uvicorn main:app --host ${UVICORN_HOST} --port ${UVICORN_PORT} --reload
-    # command: gunicorn main:app
-    #   --workers 1
-    #   --worker-class uvicorn.workers.UvicornWorker
-    #   --bind ${UVICORN_HOST}:${UVICORN_PORT}
-    #   --timeout 120
+    # command: uvicorn main:app --host ${UVICORN_HOST} --port ${UVICORN_PORT} --reload
+    command: gunicorn main:app
+      --workers 1
+      --worker-class uvicorn.workers.UvicornWorker
+      --bind ${UVICORN_HOST}:${UVICORN_PORT}
+      --timeout 120
 
 
   redis:

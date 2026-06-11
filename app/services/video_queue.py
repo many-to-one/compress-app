@@ -107,7 +107,7 @@ class VideoQueue:
 
         # 1) Sprawdzamy długość filmu
         task.progress = 5
-        await asyncio.sleep(0)
+        # await asyncio.sleep(0)
 
         duration = await asyncio.to_thread(self.get_video_duration, data)
         if duration > 300:
@@ -115,7 +115,7 @@ class VideoQueue:
 
         # 2) Kompresja z prawdziwym progresem
         task.progress = 10
-        await asyncio.sleep(0)
+        # await asyncio.sleep(0)
 
         compressed = await self.compress_video_with_progress(task, data, duration)
 
@@ -178,6 +178,10 @@ class VideoQueue:
 
             cmd = [
                 "ffmpeg",
+                "-threads", "1",
+                "-fflags", "+genpts",
+                "-analyzeduration", "100M",
+                "-probesize", "100M",
 
                 "-hide_banner",
 
@@ -252,7 +256,7 @@ class VideoQueue:
                         except Exception:
                             pass
 
-                    await asyncio.sleep(0)
+                    # await asyncio.sleep(0)
 
                 # =========================
                 # WAIT PROCESS
