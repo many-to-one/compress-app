@@ -103,50 +103,134 @@ class VideoQueue:
     async def process_video(self, task: VideoTask):
 
         filename = task.file_data["filename"]
-        data = task.file_data["data"]
+        filepath = task.file_data["filepath"]
 
-        # 1) Sprawdzamy długość filmu
+        # =====================
+        # CHECK DURATION
+        # =====================
+
         task.progress = 5
-        # await asyncio.sleep(0)
 
-        duration = await asyncio.to_thread(self.get_video_duration, data)
+        duration = await asyncio.to_thread(
+            self.get_video_duration,
+            filepath
+        )
+
         if duration > 300:
             raise Exception("Film jest dłuższy niż 5 minut.")
 
-        # 2) Kompresja z prawdziwym progresem
+        # =====================
+        # COMPRESS
+        # =====================
+
         task.progress = 10
-        # await asyncio.sleep(0)
 
-        compressed = await self.compress_video_with_progress(task, data, duration)
+        compressed = await self.compress_video_with_progress(
+            task,
+            filepath,
+            duration
+        )
 
-        # 3) Zakończone
+        # =====================
+        # DONE
+        # =====================
+
         task.result = compressed
         task.compressed_size = len(compressed)
-        print(f"==============Compressed {filename}: {len(data)} -> {len(compressed)} bytes")
+
+        try:
+            original_size = os.path.getsize(filepath)
+        except:
+            original_size = 0
+
+        print(
+            f"Compressed {filename}: "
+            f"{original_size} -> {len(compressed)} bytes"
+        )
+
         task.progress = 100
+
+        # =====================
+        # CLEANUP
+        # =====================
+
+        try:
+            os.remove(filepath)
+        except:
+            pass
+
+    # async def process_video(self, task: VideoTask):
+
+    #     filename = task.file_data["filename"]
+    #     data = task.file_data["data"]
+
+    #     # 1) Sprawdzamy długość filmu
+    #     task.progress = 5
+    #     # await asyncio.sleep(0)
+
+    #     duration = await asyncio.to_thread(self.get_video_duration, data)
+    #     if duration > 300:
+    #         raise Exception("Film jest dłuższy niż 5 minut.")
+
+    #     # 2) Kompresja z prawdziwym progresem
+    #     task.progress = 10
+    #     # await asyncio.sleep(0)
+
+    #     compressed = await self.compress_video_with_progress(task, data, duration)
+
+    #     # 3) Zakończone
+    #     task.result = compressed
+    #     task.compressed_size = len(compressed)
+    #     print(f"==============Compressed {filename}: {len(data)} -> {len(compressed)} bytes")
+    #     task.progress = 100
 
 
     # =====================
     # FFmpeg — długość filmu
     # =====================
 
-    def get_video_duration(self, data: bytes) -> float:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            input_path = os.path.join(tmpdir, "input.mp4")
+    def get_video_duration(self, filepath: str) -> float:
 
-            with open(input_path, "wb") as f:
-                f.write(data)
+        cmd = [
+            "ffprobe",
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            filepath
+        ]
 
-            cmd = [
-                "ffprobe",
-                "-v", "error",
-                "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1",
-                input_path
-            ]
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
 
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return float(result.stdout.decode().strip())
+        if result.returncode != 0:
+            raise Exception(
+                result.stderr.decode(errors="ignore")
+            )
+
+        return float(
+            result.stdout.decode().strip()
+        )
+
+    # def get_video_duration(self, data: bytes) -> float:
+    #     with tempfile.TemporaryDirectory() as tmpdir:
+    #         input_path = os.path.join(tmpdir, "input.mp4")
+
+    #         with open(input_path, "wb") as f:
+    #             f.write(data)
+
+    #         cmd = [
+    #             "ffprobe",
+    #             "-v", "error",
+    #             "-show_entries", "format=duration",
+    #             "-of", "default=noprint_wrappers=1:nokey=1",
+    #             input_path
+    #         ]
+
+    #         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #         return float(result.stdout.decode().strip())
 
     # =====================
     # FFmpeg — kompresja
@@ -155,161 +239,204 @@ class VideoQueue:
     async def compress_video_with_progress(
         self,
         task: VideoTask,
-        data: bytes,
+        # data: bytes,
+        input_path: str,
         duration: float,
         crf: int = 28
     ) -> bytes:
 
-        with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = f"/tmp/output_{uuid.uuid4()}.mp4"
 
-            input_path = os.path.join(tmpdir, "input.mp4")
-            output_path = os.path.join(tmpdir, "output.mp4")
+        # with tempfile.TemporaryDirectory() as tmpdir:
 
-            # =========================
-            # SAVE INPUT
-            # =========================
+        #     input_path = os.path.join(tmpdir, "input.mp4")
+            # output_path = os.path.join(tmpdir, "output.mp4")
 
-            with open(input_path, "wb") as f:
-                f.write(data)
+        #     # =========================
+        #     # SAVE INPUT
+        #     # =========================
+
+        #     with open(input_path, "wb") as f:
+        #         f.write(data)
 
             # =========================
             # FFMPEG
             # =========================
 
-            cmd = [
-                "ffmpeg",
-                "-threads", "1",
-                "-fflags", "+genpts",
-                "-analyzeduration", "100M",
-                "-probesize", "100M",
+            # cmd = [
+            #     "ffmpeg",
+            #     "-threads", "1",
+            #     "-fflags", "+genpts",
+            #     "-analyzeduration", "100M",
+            #     "-probesize", "100M",
 
-                "-hide_banner",
+            #     "-hide_banner",
 
-                "-i", input_path,
+            #     "-i", input_path,
 
-                # VIDEO
-                "-c:v", "libx264",
-                "-preset", "ultrafast",
-                "-crf", "30",
-                # "-c:v", "libx264",
-                # "-preset", "veryfast",
-                # "-crf", str(crf),
+            #     # VIDEO
+            #     "-c:v", "libx264",
+            #     "-preset", "ultrafast",
+            #     "-crf", "30",
+            #     # "-c:v", "libx264",
+            #     # "-preset", "veryfast",
+            #     # "-crf", str(crf),
 
-                # AUDIO
-                "-c:a", "aac",
-                "-b:a", "96k",
+            #     # AUDIO
+            #     "-c:a", "aac",
+            #     "-b:a", "96k",
 
-                # WEB STREAMING
-                "-movflags", "+faststart",
+            #     # WEB STREAMING
+            #     "-movflags", "+faststart",
 
-                # PROGRESS
-                "-progress", "pipe:1",
-                "-nostats",
+            #     # PROGRESS
+            #     "-progress", "pipe:1",
+            #     "-nostats",
 
-                output_path,
-                "-y"
-            ]
+            #     output_path,
+            #     "-y"
+            # ]
 
-            print("START FFMPEG")
+        cmd = [
+            "ffmpeg",
 
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
+            "-threads", "1",
+
+            "-fflags", "+genpts",
+
+            "-analyzeduration", "20M",
+            "-probesize", "20M",
+
+            "-hide_banner",
+
+            "-i", input_path,
+
+            "-c:v", "libx264",
+            "-preset", "ultrafast",
+            "-crf", str(crf),
+
+            "-c:a", "aac",
+            "-b:a", "96k",
+
+            "-movflags", "+faststart",
+
+            "-progress", "pipe:1",
+            "-nostats",
+
+            output_path,
+            "-y"
+        ]
+
+        print("START FFMPEG")
+
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        try:
+
+            while True:
+
+                line = await process.stdout.readline()
+
+                if not line:
+                    break
+
+                line = line.decode("utf-8").strip()
+
+                # DEBUG
+                # print("FFMPEG:", line)
+
+                if line.startswith("out_time_ms="):
+
+                    try:
+
+                        micros = int(
+                            line.split("=")[1]
+                        )
+
+                        current_seconds = micros / 1_000_000
+
+                        progress = int(
+                            (current_seconds / duration) * 100
+                        )
+
+                        progress = max(0, min(progress, 99))
+
+                        task.progress = max(
+                            task.progress,
+                            progress
+                        )
+
+                    except Exception:
+                        pass
+
+                # await asyncio.sleep(0)
+
+            # =========================
+            # WAIT PROCESS
+            # =========================
 
             try:
 
-                while True:
+                await asyncio.wait_for(
+                    process.wait(),
+                    timeout=180
+                )
 
-                    line = await process.stdout.readline()
+            except asyncio.TimeoutError:
 
-                    if not line:
-                        break
+                process.kill()
 
-                    line = line.decode("utf-8").strip()
+                raise Exception(
+                    "Kompresja przekroczyła limit czasu (180s)"
+                )
 
-                    # DEBUG
-                    # print("FFMPEG:", line)
+            print("END FFMPEG")
 
-                    if line.startswith("out_time_ms="):
+            # =========================
+            # ERROR CHECK
+            # =========================
 
-                        try:
+            if process.returncode != 0:
 
-                            micros = int(
-                                line.split("=")[1]
-                            )
+                stderr = await process.stderr.read()
 
-                            current_seconds = micros / 1_000_000
+                raise Exception(
+                    f"FFmpeg error:\n{stderr.decode(errors='ignore')}"
+                )
 
-                            progress = int(
-                                (current_seconds / duration) * 100
-                            )
+            if not os.path.exists(output_path):
 
-                            progress = max(0, min(progress, 99))
+                raise Exception(
+                    "FFmpeg nie wygenerował pliku wynikowego."
+                )
 
-                            task.progress = max(
-                                task.progress,
-                                progress
-                            )
+            # =========================
+            # LOAD OUTPUT
+            # =========================
 
-                        except Exception:
-                            pass
+            with open(output_path, "rb") as f:
+                result = f.read()
 
-                    # await asyncio.sleep(0)
+            try:
+                os.remove(output_path)
+            except:
+                pass
 
-                # =========================
-                # WAIT PROCESS
-                # =========================
+            return result
 
-                try:
+            # with open(output_path, "rb") as f:
+            #     result = f.read()
 
-                    await asyncio.wait_for(
-                        process.wait(),
-                        timeout=180
-                    )
+            # return result
 
-                except asyncio.TimeoutError:
+        finally:
 
-                    process.kill()
-
-                    raise Exception(
-                        "Kompresja przekroczyła limit czasu (180s)"
-                    )
-
-                print("END FFMPEG")
-
-                # =========================
-                # ERROR CHECK
-                # =========================
-
-                if process.returncode != 0:
-
-                    stderr = await process.stderr.read()
-
-                    raise Exception(
-                        f"FFmpeg error:\n{stderr.decode(errors='ignore')}"
-                    )
-
-                if not os.path.exists(output_path):
-
-                    raise Exception(
-                        "FFmpeg nie wygenerował pliku wynikowego."
-                    )
-
-                # =========================
-                # LOAD OUTPUT
-                # =========================
-
-                with open(output_path, "rb") as f:
-                    result = f.read()
-
-                return result
-
-            finally:
-
-                if process.returncode is None:
-                    process.kill()
+            if process.returncode is None:
+                process.kill()
 
 
     # =====================

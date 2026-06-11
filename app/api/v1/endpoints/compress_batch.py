@@ -214,19 +214,55 @@ def download_from_drive(access_token, file_id):
 
 
 
+# @router.post("/video")
+# async def compress_video_endpoint(file: UploadFile = File(...)):
+
+#     data = await file.read()
+
+#     try:
+#         task_id = await video_queue_manager.video_queue.add_task(
+#             file_data={"filename": file.filename, "data": data}
+#         )
+#         return {"task_id": task_id}
+
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+
+
+import uuid
+import aiofiles
+from pathlib import Path
+
 @router.post("/video")
 async def compress_video_endpoint(file: UploadFile = File(...)):
 
-    data = await file.read()
-
     try:
+
+        suffix = Path(file.filename).suffix
+
+        tmp_path = f"/tmp/{uuid.uuid4()}{suffix}"
+
+        async with aiofiles.open(tmp_path, "wb") as f:
+
+            while chunk := await file.read(1024 * 1024):
+                await f.write(chunk)
+
         task_id = await video_queue_manager.video_queue.add_task(
-            file_data={"filename": file.filename, "data": data}
+            file_data={
+                "filename": file.filename,
+                "filepath": tmp_path
+            }
         )
-        return {"task_id": task_id}
+
+        return {
+            "task_id": task_id
+        }
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
 
 
 
