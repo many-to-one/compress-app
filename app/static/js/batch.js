@@ -611,6 +611,7 @@ async function uploadSelectedToDrive() {
             btn.disabled = false;
             btn.innerText = "Reconnect to Drive and Try Again";
             btn.onclick = () => window.location.href = "/auth/google-drive";
+            return
         }
 
         const data = await res.json();
