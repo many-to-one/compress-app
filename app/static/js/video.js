@@ -32,7 +32,8 @@ function updateVideoSizes(files) {
 // =========================
 // INPUT
 // =========================
-document.getElementById("files_video").onchange = (e) => {
+// document.getElementById("files_video").onchange = (e) => {
+document.getElementById("files").onchange = (e) => {
 
     const dtVFiles = e.target.files;
     const closeBtn = document.getElementById("warningClose");
@@ -42,28 +43,30 @@ document.getElementById("files_video").onchange = (e) => {
 
         if (f.type.startsWith("video/")) {
 
-            console.log('Drop --- Processing video file:', f);
+            return
 
-            if (dtVFiles.length > 3) {
-                showVideoWarning("warning_video_too_many_files");
-                closeBtn.addEventListener("click", () => {
-                    window.location.href = "/";
-                });
-                return;
-            }
+            // console.log('Drop --- Processing video file:', f);
 
-            const sizeMB = f.size / 1024 / 1024;
-            console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
-            if (sizeMB > 350) {
-                showVideoWarning("warning_video_file_too_big");
-                closeBtn.addEventListener("click", () => {
-                    window.location.href = "/";
-                });
-                return;
-            }
+            // if (dtVFiles.length > 3) {
+            //     showVideoWarning("warning_video_too_many_files");
+            //     closeBtn.addEventListener("click", () => {
+            //         window.location.href = "/";
+            //     });
+            //     return;
+            // }
 
-            renderVideoFiles(dtVFiles);
-            updateVideoSizes(dtVFiles);
+            // const sizeMB = f.size / 1024 / 1024;
+            // console.log(`File: ${f.name}, Size: ${sizeMB} MB`);
+            // if (sizeMB > 350) {
+            //     showVideoWarning("warning_video_file_too_big");
+            //     closeBtn.addEventListener("click", () => {
+            //         window.location.href = "/";
+            //     });
+            //     return;
+            // }
+
+            // renderVideoFiles(dtVFiles);
+            // updateVideoSizes(dtVFiles);
         } 
 
         else if (f.type.startsWith("image/")) {
@@ -72,7 +75,7 @@ document.getElementById("files_video").onchange = (e) => {
 
             // --- LIMIT: max 20 plików ---
             if (dtVFiles.length > 20) {
-                showVideoWarning("warning_video_too_many_files", `(${dtVFiles.length} files)`);
+                showWarning("warning_too_many_files", `(${dtVFiles.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
                 });
@@ -81,7 +84,7 @@ document.getElementById("files_video").onchange = (e) => {
 
             const sizeMB = f.size / 1024 / 1024;
             if (sizeMB > 7) {
-                showVideoWarning("warning_video_file_too_big", `„${f.name}” > 7 MB`);
+                showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
                 });
@@ -131,30 +134,31 @@ dropZone.addEventListener("drop", (e) => {
 
     if (e.dataTransfer.files[0].type.startsWith("video/")) {
 
-        if (e.dataTransfer.files.length > 3 ) {
-            showVideoWarning("warning_video_too_many_files", `(${e.dataTransfer.files.length} files)`);
-                closeBtn.addEventListener("click", () => {
-                    window.location.href = "/";
-                });
-                return;
-        }
-        videoCompBtn.classList.remove("hidden");
-        imgCompBtn.classList.add("hidden");
+        return
 
-        const dtVFiles = e.dataTransfer.files;
+        // if (e.dataTransfer.files.length > 3 ) {
+        //     showVideoWarning("warning_video_too_many_files", `(${e.dataTransfer.files.length} files)`);
+        //         closeBtn.addEventListener("click", () => {
+        //             window.location.href = "/";
+        //         });
+        //         return;
+        // }
+        // videoCompBtn.classList.remove("hidden");
+        // imgCompBtn.classList.add("hidden");
+
+        // const dtVFiles = e.dataTransfer.files;
 
 
-        document.getElementById("files_video").files = dtVFiles;
+        // document.getElementById("files_video").files = dtVFiles;
 
-        renderVideoFiles(dtVFiles);
-        updateVideoSizes(dtVFiles);
+        // renderVideoFiles(dtVFiles);
+        // updateVideoSizes(dtVFiles);
 
-        document.getElementById("fileProgressContainer").scrollIntoView({
-            behavior: "smooth"
-        });
+        // document.getElementById("fileProgressContainer").scrollIntoView({
+        //     behavior: "smooth"
+        // });
 
     }
-
 
     if (e.dataTransfer.files[0].type.startsWith("image/")) {
 
@@ -165,6 +169,17 @@ dropZone.addEventListener("drop", (e) => {
                 });
                 return;
         };
+
+        for (const f of e.dataTransfer.files) {
+            const sizeMB = f.size / 1024 / 1024;
+            if (sizeMB > 7) {
+                showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
+                closeBtn.addEventListener("click", () => {
+                    window.location.href = "/";
+                });
+                return;
+            }
+        }
 
         console.log('Drop --- Processing img file:', e.dataTransfer.files[0]);
         videoCompBtn.classList.add("hidden");
@@ -448,22 +463,22 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
 
 
 
-    if (submitter.id === "startVideosBtn") {
-        e.preventDefault();
-        const files_video = Array.from(document.getElementById("files_video").files);
-        if (!files_video.length) return;
+    // if (submitter.id === "startVideosBtn") {
+    //     e.preventDefault();
+    //     const files_video = Array.from(document.getElementById("files_video").files);
+    //     if (!files_video.length) return;
 
 
-        document.getElementById("status").innerHTML = `<p class="neon-text">Processing ${files_video.length} videos...</p>`;
+    //     document.getElementById("status").innerHTML = `<p class="neon-text">Processing ${files_video.length} videos...</p>`;
         
 
-        renderVideoFiles(files_video);
-        updateVideoSizes(files_video);
-        // Przetwarzanie równoległe (limit 3)
-        const queue = [...files_video];
-        const workers = Array(MAX_PARALLEL_VIDEO).fill(null).map(() => videoWorker(queue));
-        await Promise.all(workers);
-    }
+    //     renderVideoFiles(files_video);
+    //     updateVideoSizes(files_video);
+    //     // Przetwarzanie równoległe (limit 3)
+    //     const queue = [...files_video];
+    //     const workers = Array(MAX_PARALLEL_VIDEO).fill(null).map(() => videoWorker(queue));
+    //     await Promise.all(workers);
+    // }
     
 };
 

@@ -214,23 +214,23 @@ class VideoQueue:
             result.stdout.decode().strip()
         )
 
-    # def get_video_duration(self, data: bytes) -> float:
-    #     with tempfile.TemporaryDirectory() as tmpdir:
-    #         input_path = os.path.join(tmpdir, "input.mp4")
+    def get_video_duration(self, data: bytes) -> float:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_path = os.path.join(tmpdir, "input.mp4")
 
-    #         with open(input_path, "wb") as f:
-    #             f.write(data)
+            with open(input_path, "wb") as f:
+                f.write(data)
 
-    #         cmd = [
-    #             "ffprobe",
-    #             "-v", "error",
-    #             "-show_entries", "format=duration",
-    #             "-of", "default=noprint_wrappers=1:nokey=1",
-    #             input_path
-    #         ]
+            cmd = [
+                "ffprobe",
+                "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                input_path
+            ]
 
-    #         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #         return float(result.stdout.decode().strip())
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return float(result.stdout.decode().strip())
 
     # =====================
     # FFmpeg — kompresja
@@ -250,7 +250,7 @@ class VideoQueue:
         # with tempfile.TemporaryDirectory() as tmpdir:
 
         #     input_path = os.path.join(tmpdir, "input.mp4")
-            # output_path = os.path.join(tmpdir, "output.mp4")
+        #     output_path = os.path.join(tmpdir, "output.mp4")
 
         #     # =========================
         #     # SAVE INPUT
@@ -263,39 +263,39 @@ class VideoQueue:
             # FFMPEG
             # =========================
 
-            # cmd = [
-            #     "ffmpeg",
-            #     "-threads", "1",
-            #     "-fflags", "+genpts",
-            #     "-analyzeduration", "100M",
-            #     "-probesize", "100M",
+        # cmd = [
+        #     "ffmpeg",
+        #     "-threads", "1",
+        #     "-fflags", "+genpts",
+        #     "-analyzeduration", "100M",
+        #     "-probesize", "100M",
 
-            #     "-hide_banner",
+        #     "-hide_banner",
 
-            #     "-i", input_path,
+        #     "-i", input_path,
 
-            #     # VIDEO
-            #     "-c:v", "libx264",
-            #     "-preset", "ultrafast",
-            #     "-crf", "30",
-            #     # "-c:v", "libx264",
-            #     # "-preset", "veryfast",
-            #     # "-crf", str(crf),
+        #     # VIDEO
+        #     "-c:v", "libx264",
+        #     "-preset", "ultrafast",
+        #     "-crf", "30",
+        #     # "-c:v", "libx264",
+        #     # "-preset", "veryfast",
+        #     # "-crf", str(crf),
 
-            #     # AUDIO
-            #     "-c:a", "aac",
-            #     "-b:a", "96k",
+        #     # AUDIO
+        #     "-c:a", "aac",
+        #     "-b:a", "96k",
 
-            #     # WEB STREAMING
-            #     "-movflags", "+faststart",
+        #     # WEB STREAMING
+        #     "-movflags", "+faststart",
 
-            #     # PROGRESS
-            #     "-progress", "pipe:1",
-            #     "-nostats",
+        #     # PROGRESS
+        #     "-progress", "pipe:1",
+        #     "-nostats",
 
-            #     output_path,
-            #     "-y"
-            # ]
+        #     output_path,
+        #     "-y"
+        # ]
 
         cmd = [
             "ffmpeg",
@@ -418,6 +418,10 @@ class VideoQueue:
             # LOAD OUTPUT
             # =========================
 
+            # with open(output_path, "rb") as f:
+            #     result = f.read()
+
+            # return result
             with open(output_path, "rb") as f:
                 result = f.read()
 
@@ -427,11 +431,6 @@ class VideoQueue:
                 pass
 
             return result
-
-            # with open(output_path, "rb") as f:
-            #     result = f.read()
-
-            # return result
 
         finally:
 
