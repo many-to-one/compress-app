@@ -68,6 +68,19 @@ async def create_user(db: AsyncSession, user: UserCreate):
     await db.refresh(db_user)
     return db_user
 
+
+async def create_user_oauth(db: AsyncSession, email: str, name: str | None = None):
+    db_user = User(
+        email=email,
+        name=name,
+        hashed_password=None,  # OAuth nie używa hasła
+    )
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
+
+
 # async def admin_required(
 #     user: User = Depends(get_current_user)
 # ):

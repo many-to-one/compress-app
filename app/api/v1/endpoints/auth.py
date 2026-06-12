@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import get_db
 from schemas.user import User, UserCreate, Token, LoginSchema, ResetPasswordSchema, ForgotPasswordSchema
-from crud.user import get_user_by_email, create_user, get_current_user, admin_required
+from crud.user import get_user_by_email, create_user, get_current_user, admin_required, create_user_oauth
 from core.security import verify_password, create_access_token, create_reset_token
 from core.config import settings
 
@@ -258,7 +258,7 @@ async def google_callback(code: str, db: AsyncSession = Depends(get_db)):
     )
 
     if not user:
-        user = create_user(email=email, name=name)
+        user = create_user_oauth(db, email=email, name=name)
     print("======================DB USER:", user)  # debug
 
     # 4. Wygeneruj JWT dla Twojej aplikacji
