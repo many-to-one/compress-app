@@ -7,6 +7,7 @@ from fastapi import Depends, HTTPException, status, Request
 from db.session import get_db
 from jose import jwt, JWTError, ExpiredSignatureError
 from core.config import settings
+from typing import Optional
 
 def decode_jwt(token: str):
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -69,7 +70,7 @@ async def create_user(db: AsyncSession, user: UserCreate):
     return db_user
 
 
-async def create_user_oauth(db: AsyncSession, email: str, name: str | None = None):
+async def create_user_oauth(db: AsyncSession, email: str, name: Optional[str] = None):
     db_user = User(
         email=email,
         name=name,
