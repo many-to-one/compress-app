@@ -36,6 +36,10 @@ git checkout -b nowa-galaz <hash>
 # Wrócić na gałąź main
 git checkout main
 
+# Przenieść commit z main na v1
+# Będąc na gałęzi v1:
+git cherry-pick e5db671
+git push origin v1
 
 
 
