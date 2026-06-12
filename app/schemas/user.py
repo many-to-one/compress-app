@@ -8,7 +8,7 @@ class UserBase(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
-    # full_name: str | None = None
+    name: str | None = None,
 
     @validator("password")
     def validate_password(cls, v):
