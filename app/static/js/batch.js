@@ -9,6 +9,7 @@ const googleDriveBtn = document.getElementById("googleDriveBtn");
 let actions = null;
 
 const imgCompBtn = document.getElementById("startImagesBtn");
+let dropFotofilesProcessed = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     actions = document.getElementById("drive-actions");
@@ -57,6 +58,8 @@ async function updateDriveButton() {
 // =========================
 
 function renderFiles(files) {
+
+    dropFotofilesProcessed = files
 
     if (files.length) imgCompBtn.classList.remove("hidden");
 
@@ -455,18 +458,35 @@ function showDownloadButton(
 
 function checkGlobalCompletion() {
 
+    console.log('checkGlobalCompletion---actions', actions)
+
     if (actions) actions.classList.remove("hidden");
 
     const totalFiles =
         document.getElementById("files").files.length;
+    console.log('checkGlobalCompletion---totalFiles', totalFiles)
 
     const completed =
         Object.keys(finishedTasks).length;
+    console.log('checkGlobalCompletion---completed', completed)
 
-    if (totalFiles !== completed) return;
+    if (totalFiles !== completed) {
+        console.log('checkGlobalCompletion---totalFiles !== completed')
+        if ( dropFotofilesProcessed.length > 0 ) {
+            createActionsBtns();
+        }
+        return;
+    };
+
+    createActionsBtns();
+
+}
+
+function createActionsBtns () {
 
     const statusDiv =
         document.getElementById("status");
+    console.log('checkGlobalCompletion---statusDiv', statusDiv)
 
     const zipBtn = document.createElement("button");
 
@@ -492,6 +512,7 @@ function checkGlobalCompletion() {
     };
 
     statusDiv.innerHTML = "";
+    console.log('checkGlobalCompletion---statusDiv after', statusDiv)
 
     statusDiv.appendChild(actions);
     statusDiv.appendChild(zipBtn);
@@ -499,6 +520,7 @@ function checkGlobalCompletion() {
     googleDriveBtnUpload.onclick = uploadSelectedToDrive;
     // console.log('checkGlobalCompletion - actions after', actions)
     // console.log('checkGlobalCompletion - statusDiv', statusDiv)
+
 }
 
 // =========================

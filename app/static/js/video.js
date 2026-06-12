@@ -132,6 +132,8 @@ dropZone.addEventListener("drop", (e) => {
     const imgCompBtn = document.getElementById("startImagesBtn");
     const closeBtn = document.getElementById("warningClose");
 
+    console.log('imgCompBtn--', imgCompBtn)
+
     if (e.dataTransfer.files[0].type.startsWith("video/")) {
 
         return
@@ -184,6 +186,7 @@ dropZone.addEventListener("drop", (e) => {
         console.log('Drop --- Processing img file:', e.dataTransfer.files[0]);
         videoCompBtn.classList.add("hidden");
         imgCompBtn.classList.remove("hidden");
+        console.log('imgCompBtn--', imgCompBtn)
 
         // const dropFotofiles = document.getElementById("files").files;
         dropFotofiles.push(...e.dataTransfer.files);
@@ -439,23 +442,24 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
 
         e.preventDefault();
 
-        // console.log("startImagesBtn-dropFotofiles", dropFotofiles)
+        console.log("startImagesBtn-dropFotofiles", dropFotofiles)
 
         const files_img= Array.from(document.getElementById("files").files);
         if (!files_img.length) {
+            console.log("!files_img", dropFotofiles)
             document.getElementById("status").innerHTML =
             `<p class="neon-text">Processing ${dropFotofiles.length} files...</p>`;
 
             await processQueue(dropFotofiles); //from batch.js
             return;
         } else if (files_img.length) {
+            console.log("files_img", files_img)
             document.getElementById("status").innerHTML =
             `<p class="neon-text">Processing ${files_img.length} files...</p>`;
 
             await processQueue(files_img); //from batch.js
             return;
         }
-
 
 
     }
