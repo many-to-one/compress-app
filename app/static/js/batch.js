@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function checkDriveStatus() {
     const res = await fetch("/auth/google-drive/status");
     const data = await res.json();
-    console.log('checkDriveStatus---', res)
+    // console.log('checkDriveStatus---', res)
     isDriveConnected = data.connected;
     await updateDriveButton();
 }
@@ -115,7 +115,7 @@ function renderFiles(files) {
             return;
         }
 
-        console.log('renderFiles-----', f)
+        // console.log('renderFiles-----', f)
 
         const safeId = createSafeId(f.name);
 
@@ -173,21 +173,21 @@ document.getElementById("files").onchange = (e) => {
     // const files = e.target.files;
 
     const dtFiles = e.target.files;
-    console.log('Drop --- Processing dtFiles:', dtFiles);
+    // console.log('Drop --- Processing dtFiles:', dtFiles);
 
     // --- LIMIT: max 20 plików ---
-    if (dtFiles.length > 20 && !window.USER.is_admin) {
+    if (dtFiles.length > 20 && !window.USER.is_premium) {
         showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
         return;
     }
 
     // --- LIMIT: max 7 MB ---
     for (const f of dtFiles) {
-        console.log('Drop --- Processing file:', f);
-        console.log(window.USER.email);
+        // console.log('Drop --- Processing file:', f);
+        // console.log(window.USER.email);
         if (f.type.startsWith("image/")) {
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7 && !window.USER.is_admin) {
+            if (sizeMB > 7 && !window.USER.is_premium) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 return;
             }
@@ -290,8 +290,8 @@ async function processQueue(files) {
 
     const queue = [...files];
 
-    console.log("processQueue-files", files)
-    console.log("processQueue queue", queue)
+    // console.log("processQueue-files", files)
+    // console.log("processQueue queue", queue)
 
     const workers = [];
 
@@ -311,7 +311,7 @@ async function worker(queue) {
         const file = queue.shift();
 
         if (!file.type.startsWith("image/")) {
-            console.warn(`Skipping unsupported file type: ${file.name}`);
+            // console.warn(`Skipping unsupported file type: ${file.name}`);
             showWarning("warning_invalid_file_type", `„${file.name}”`);
             return;
         }
@@ -362,7 +362,7 @@ async function processSingleFile(file) {
 
     } catch (err) {
 
-        console.error(err);
+        // console.error(err);
 
         updateErrorUI(safeId);
     }
@@ -451,7 +451,7 @@ async function checkSingleFileStatus(
 
             } catch (err) {
 
-                console.error(err);
+                // console.error(err);
 
                 clearInterval(interval);
 
@@ -506,20 +506,20 @@ function showDownloadButton(
 
 function checkGlobalCompletion() {
 
-    console.log('checkGlobalCompletion---actions', actions)
+    // console.log('checkGlobalCompletion---actions', actions)
 
     if (actions) actions.classList.remove("hidden");
 
     const totalFiles =
         document.getElementById("files").files.length;
-    console.log('checkGlobalCompletion---totalFiles', totalFiles)
+    // console.log('checkGlobalCompletion---totalFiles', totalFiles)
 
     const completed =
         Object.keys(finishedTasks).length;
-    console.log('checkGlobalCompletion---completed', completed)
+    // console.log('checkGlobalCompletion---completed', completed)
 
     if (totalFiles !== completed) {
-        console.log('checkGlobalCompletion---totalFiles !== completed')
+        // console.log('checkGlobalCompletion---totalFiles !== completed')
         if ( dropFotofilesProcessed.length > 0 ) {
             createActionsBtns();
         }
@@ -534,7 +534,7 @@ function createActionsBtns () {
 
     const statusDiv =
         document.getElementById("status");
-    console.log('checkGlobalCompletion---statusDiv', statusDiv)
+    // console.log('checkGlobalCompletion---statusDiv', statusDiv)
 
     const zipBtn = document.createElement("button");
 
@@ -564,7 +564,7 @@ function createActionsBtns () {
     };
 
     statusDiv.innerHTML = "";
-    console.log('checkGlobalCompletion---statusDiv after', statusDiv)
+    // console.log('checkGlobalCompletion---statusDiv after', statusDiv)
 
     statusDiv.appendChild(actions);
     statusDiv.appendChild(zipBtn);
@@ -677,7 +677,7 @@ async function uploadSelectedToDrive() {
             body: JSON.stringify(taskIds)
         });
 
-        console.log("uploadSelectedToDrive", res)
+        // console.log("uploadSelectedToDrive", res)
 
         if (res.status === 401) {
             // window.location.href = "/auth/google-drive";

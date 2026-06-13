@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sparksContainer = document.getElementById("snail-sparks");
 
     if (!snail) {
-        console.warn("Slimage: #slimage-snail not found");
+        // console.warn("Slimage: #slimage-snail not found");
         return;
     }
 

@@ -71,11 +71,11 @@ document.getElementById("files").onchange = (e) => {
 
         else if (f.type.startsWith("image/")) {
 
-            console.log('Drop --- Processing img file:', f);
-            console.log(window.USER.is_admin);
+            // console.log('Drop --- Processing img file:', f);
+            // console.log(window.USER.is_premium);
 
             // --- LIMIT: max 20 plików ---
-            if (dtVFiles.length > 20 && !window.USER.is_admin) {
+            if (dtVFiles.length > 20 && !window.USER.is_premium) {
                 showWarning("warning_too_many_files", `(${dtVFiles.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -84,7 +84,7 @@ document.getElementById("files").onchange = (e) => {
             }
 
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7 && !window.USER.is_admin) {
+            if (sizeMB > 7 && !window.USER.is_premium) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -133,7 +133,7 @@ dropZone.addEventListener("drop", (e) => {
     const imgCompBtn = document.getElementById("startImagesBtn");
     const closeBtn = document.getElementById("warningClose");
 
-    console.log('imgCompBtn--', imgCompBtn)
+    // console.log('imgCompBtn--', imgCompBtn)
 
     if (e.dataTransfer.files[0].type.startsWith("video/")) {
 
@@ -165,7 +165,7 @@ dropZone.addEventListener("drop", (e) => {
 
     if (e.dataTransfer.files[0].type.startsWith("image/")) {
 
-        if (e.dataTransfer.files.length > 20 && !window.USER.is_admin ) {
+        if (e.dataTransfer.files.length > 20 && !window.USER.is_premium ) {
             showWarning("warning_too_many_files", `(${e.dataTransfer.files.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -175,7 +175,7 @@ dropZone.addEventListener("drop", (e) => {
 
         for (const f of e.dataTransfer.files) {
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7 && !window.USER.is_admin) {
+            if (sizeMB > 7 && !window.USER.is_premium) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -184,15 +184,15 @@ dropZone.addEventListener("drop", (e) => {
             }
         }
 
-        console.log('Drop --- Processing img file:', e.dataTransfer.files[0]);
+        // console.log('Drop --- Processing img file:', e.dataTransfer.files[0]);
         videoCompBtn.classList.add("hidden");
         imgCompBtn.classList.remove("hidden");
-        console.log('imgCompBtn--', imgCompBtn)
+        // console.log('imgCompBtn--', imgCompBtn)
 
         // const dropFotofiles = document.getElementById("files").files;
         dropFotofiles.push(...e.dataTransfer.files);
-        console.log('Drop --- dropFotofiles:', dropFotofiles);
-        console.log("Drop --- length(dropFotofiles)", dropFotofiles.length)
+        // console.log('Drop --- dropFotofiles:', dropFotofiles);
+        // console.log("Drop --- length(dropFotofiles)", dropFotofiles.length)
 
         renderFiles(dropFotofiles);
         updateFileSizes(dropFotofiles);
@@ -334,7 +334,7 @@ async function uploadSelectedToDrive() {
             window.location.href = "/login";
         };
 
-        console.log("uploadSelectedToDrive", res)
+        // console.log("uploadSelectedToDrive", res)
 
         if (res.status === 401) {
             window.location.href = "/auth/google-drive";
@@ -447,18 +447,18 @@ document.getElementById("uploadForm").onsubmit = async (e) => {
 
         e.preventDefault();
 
-        console.log("startImagesBtn-dropFotofiles", dropFotofiles)
+        // console.log("startImagesBtn-dropFotofiles", dropFotofiles)
 
         const files_img= Array.from(document.getElementById("files").files);
         if (!files_img.length) {
-            console.log("!files_img", dropFotofiles)
+            // console.log("!files_img", dropFotofiles)
             document.getElementById("status").innerHTML =
             `<p class="neon-text">Processing ${dropFotofiles.length} files...</p>`;
 
             await processQueue(dropFotofiles); //from batch.js
             return;
         } else if (files_img.length) {
-            console.log("files_img", files_img)
+            // console.log("files_img", files_img)
             document.getElementById("status").innerHTML =
             `<p class="neon-text">Processing ${files_img.length} files...</p>`;
 
@@ -495,7 +495,7 @@ async function videoWorker(queue) {
     while (queue.length > 0) {
         const file = queue.shift();
         if (!file.type.startsWith("video/")) {
-            console.warn(`Skipping unsupported file type: ${file.name}`);
+            // console.warn(`Skipping unsupported file type: ${file.name}`);
             showVideoWarning("warning_invalid_file_type", `„${file.name}”`);    
             return;
         }
@@ -526,7 +526,7 @@ async function pollVideoStatus(taskId, filename, originalSize) {
         const interval = setInterval(async () => {
             const res = await fetch(`/compress/video/status/${taskId}`);
             const data = await res.json();
-            console.log(`Status for ${filename}:`, data);
+            // console.log(`Status for ${filename}:`, data);
 
             updateProgressUI(safeId, data.progress || 0);
 
@@ -615,14 +615,14 @@ function checkGlobalVideoCompletion() {
     const totalFiles = (document.getElementById("files_video") || {}).files?.length || 0;
     const completed = Object.keys(finishedVideoTasks || {}).length;
 
-    console.log("checkGlobalVideoCompletion:", { totalFiles, completed, finishedVideoTasks, isDriveConnected });
+    // console.log("checkGlobalVideoCompletion:", { totalFiles, completed, finishedVideoTasks, isDriveConnected });
 
     if (totalFiles === 0) return;
 
     if (totalFiles === completed) {
         const statusDiv = document.getElementById("status");
         if (!statusDiv) {
-            console.warn("Brak elementu #status w DOM");
+            // console.warn("Brak elementu #status w DOM");
             return;
         }
 
@@ -657,7 +657,7 @@ function checkGlobalVideoCompletion() {
             const driveBtn = createGoogleDriveUploadButton();
             statusDiv.appendChild(driveBtn);
         } else {
-            console.log("Drive not connected or isDriveConnected is false");
+            // console.log("Drive not connected or isDriveConnected is false");
         }
     }
 }
@@ -681,7 +681,7 @@ async function uploadVideosToDrive() {
             body: JSON.stringify(selected)
         });
         const data = await res.json();
-        console.log("uploadVideosToDrive response:", data);
+        // console.log("uploadVideosToDrive response:", data);
         alert(`Uploaded ${data.uploaded.length} videos to Drive!`);
         if (data.uploaded.length > 0) {
             btn.disabled = false;
@@ -694,7 +694,7 @@ async function uploadVideosToDrive() {
             btn.innerText = "Uploaded!";
         }
     } catch (e) { 
-        console.error("Error uploading videos to Drive:", e);
+        // console.error("Error uploading videos to Drive:", e);
         alert("Upload failed.");
         btn.disabled = false;
         btn.innerText = "Upload to Drive";

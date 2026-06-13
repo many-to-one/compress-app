@@ -42,7 +42,7 @@ form.addEventListener("submit", async (e) => {
 
     } catch (err) {
 
-        console.error(err);
+        // console.error(err);
 
         result.innerText = "Network error";
     }

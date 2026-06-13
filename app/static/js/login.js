@@ -29,7 +29,7 @@ form.addEventListener("submit", async (e) => {
         window.location.href = "/";
 
     } catch (error) {
-        console.error(error);
+        // console.error(error);
         result.innerText = "Network error";
     }
 });

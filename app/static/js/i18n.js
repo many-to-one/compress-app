@@ -30,7 +30,7 @@ async function loadTranslations(lang) {
         const res = await fetch(`/static/i18n/${lang}.json`);
         return await res.json();
     } catch (e) {
-        console.warn("Missing translation file, using fallback EN");
+        // console.warn("Missing translation file, using fallback EN");
         const res = await fetch(`/static/i18n/en.json`);
         return await res.json();
     }
@@ -78,7 +78,7 @@ translatePage();
 
 function setLang(lang) {
 
-    console.log("regionLang", localStorage.getItem("regionLang"))
+    // console.log("regionLang", localStorage.getItem("regionLang"))
     if (lang === "en") {
         // przełączamy na oryginał
         localStorage.setItem("lang", "en");

@@ -1,6 +1,6 @@
 function checkAuth(response) {
 
-    console.log('checkAuth*******', response.status)
+    // console.log('checkAuth*******', response.status)
     // 302 → backend próbuje przekierować na /login_page
     if (response.status === 302 || response.redirected) {
         alert("Sesja wygasła. Zaloguj się ponownie.");
