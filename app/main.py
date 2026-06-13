@@ -480,7 +480,8 @@ async def home(
                 "id": user.id,
                 "email": user.email,
                 "is_admin": user.is_admin,
-                "compression_count": user.compression_count,
+                 "is_premium": user.is_premium,
+                "compression_count": user.compression_count or 0,
             } if user else None
         }
     )
