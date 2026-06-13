@@ -77,7 +77,9 @@
   "warning_invalid_file_type": "Invalid file type.",
   "warning_video_too_many_files": "You can upload up to 3 video files.",
   "warning_video_file_too_big": "The video file is larger than 350 MB.",
-  "vpn_detected": "VPN detected. Disable VPN to use the app."
+  "vpn_detected": "VPN detected. Disable VPN to use the app.",
+  "your_comp": "You compressed files count:",
+  "all_comp": "All compressed files count:"
 }
 
 

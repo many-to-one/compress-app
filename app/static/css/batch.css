@@ -663,3 +663,36 @@ body.compact .progress-bar {
 .hidden {
     display: none;
 }
+
+
+.neon-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.neon-box {
+    padding: 14px 20px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.25);
+    backdrop-filter: blur(6px);
+}
+
+.neon-label {
+    display: block;
+    font-size: 14px;
+    color: #7ffcff;
+    text-shadow: 0 0 6px #00eaff;
+    margin-bottom: 4px;
+}
+
+.neon-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: #00f6ff;
+    text-shadow: 0 0 12px #00eaff, 0 0 24px #00eaff;
+    letter-spacing: 1px;
+}

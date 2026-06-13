@@ -18,6 +18,9 @@ import aioredis
 import httpx
 import time
 
+from sqlalchemy import select, func
+from models.user import User
+
 
 # ============================
 # APP
@@ -426,13 +429,6 @@ app.include_router(
 # STARTUP
 # ============================
 
-# @app.on_event("startup")
-# async def start_worker():
-
-#     asyncio.create_task(
-#         compression_queue.worker()
-#     )
-
 import asyncio
 
 import services.queue_manager as queue_manager
@@ -468,6 +464,10 @@ async def home(
 
     user = request.state.user
 
+    total_compressions = await db.scalar(
+        select(func.sum(User.compression_count))
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="batch.html",
@@ -475,10 +475,12 @@ async def home(
             "request": request,
             "is_authenticated": bool(user),
             "is_admin": bool(user and user.is_admin),
+            "total_compressions": total_compressions,
             "user": {
                 "id": user.id,
                 "email": user.email,
-                "is_admin": user.is_admin
+                "is_admin": user.is_admin,
+                "compression_count": user.compression_count,
             } if user else None
         }
     )

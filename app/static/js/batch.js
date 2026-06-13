@@ -15,6 +15,47 @@ document.addEventListener("DOMContentLoaded", () => {
     actions = document.getElementById("drive-actions");
 });
 
+
+
+
+// =========================
+// ANIMATE COUNTER
+// =========================
+
+function animateCounter(element, to, duration = 1200) {
+    let start = 0;
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = timestamp - startTime;
+        const percent = Math.min(progress / duration, 1);
+
+        element.textContent = Math.floor(percent * to);
+
+        if (percent < 1) {
+            requestAnimationFrame(step);
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("total-counter");
+    const userEl = document.getElementById("user-counter");
+    if (el && window.TOTAL_COMPRESSIONS !== undefined) {
+        animateCounter(el, window.TOTAL_COMPRESSIONS);
+    }
+
+    if (userEl && window.USER !== undefined) {
+        animateCounter(userEl, window.USER.compression_count);
+    }
+});
+
+
+
+
 // =========================
 // CHECK GOOGLE DRIVE STATUS
 // =========================

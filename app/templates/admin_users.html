@@ -16,6 +16,7 @@
             <th>ID</th>
             <th>Email</th>
             <th>Imię i nazwisko</th>
+            <th>Ilość komprecji</th>
             <th>Aktywny</th>
             <th>Zablokowany</th>
             <th>Admin</th>
@@ -29,6 +30,7 @@
             <td>{{ u.id }}</td>
             <td>{{ u.email }}</td>
             <td>{{ u.full_name or "-" }}</td>
+            <td>{{ u.compression_count }}</td>
 
             <td>
                 {% if u.is_active %}

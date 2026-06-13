@@ -139,6 +139,21 @@
         </div>
     </form>
 
+    <div class="neon-stats">
+        {% if user and user.compression_count > 0 %}
+            <div class="neon-box">
+                <span class="neon-label" data-i18n="your_comp"></span>
+                <span id="user-counter" class="neon-number">0</span>
+            </div>
+        {% endif %}
+
+        <div class="neon-box">
+            <span class="neon-label" data-i18n="all_comp"></span>
+            <span id="total-counter" class="neon-number">0</span>
+        </div>
+    </div>
+
+
     <div id="status" class="checkbox-container">
         <div id="drive-actions" class="drive-actions hidden checkbox-container">
             <label>
@@ -167,6 +182,7 @@
         <li data-i18n="why_reduce_3"><strong>Better performance</strong> — apps and galleries open faster.</li>
         <li data-i18n="why_reduce_4"><strong>Quicker sharing</strong> — upload and send images much faster.</li>
         <li data-i18n="why_reduce_5"><strong>Lower bandwidth</strong> — ideal for mobile users and slow networks.</li>
+
     </ul>
 </div>
 
@@ -338,6 +354,7 @@
     </div>
 
 </div>
+
 
 </div>
 
@@ -567,6 +584,7 @@ async function detectVPN() {
 
 <script>
     window.USER = JSON.parse(`{{ user | tojson | safe }}`);
+    window.TOTAL_COMPRESSIONS = {{ total_compressions }};
 </script>
 
 

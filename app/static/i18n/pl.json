@@ -79,7 +79,9 @@
   "vpn_detected": "Wykryto VPN. Wyłącz VPN, aby korzystać z aplikacji.",
   "warning_video_file_too_big": "Rozmiar pliku(-ów) jest zbyt duży (max 350 MB).",
   "warning_video_too_many_files": "Możesz przesłać tylko 3 filmy.",
-  "warning_invalid_file_type": "Nieprawidłowy typ pliku."
+  "warning_invalid_file_type": "Nieprawidłowy typ pliku.",
+  "your_comp": "Ilość twoich kompresji:",
+  "all_comp": "Ilość wszystkich kompresji wynosi:"
 }
 
 
