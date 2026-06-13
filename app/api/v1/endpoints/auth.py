@@ -72,7 +72,7 @@ async def login(user: LoginSchema, db: AsyncSession = Depends(get_db)):
         httponly=True,
         secure=False,
         samesite="lax",
-        max_age=60 * 60 * 24
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES #60 * 60 * 24
     )
 
     return response

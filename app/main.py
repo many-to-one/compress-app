@@ -158,14 +158,15 @@ async def admin_protect(request: Request, call_next):
         user = request.state.user
 
         if not user or not user.is_admin:
+            raise HTTPException(status_code=404)
 
-            return templates.TemplateResponse(
-                "403.html",
-                {
-                    "request": request
-                },
-                status_code=403
-            )
+            # return templates.TemplateResponse(
+            #     "403.html",
+            #     {
+            #         "request": request
+            #     },
+            #     status_code=403
+            # )
 
     return await call_next(request)
 
@@ -474,7 +475,11 @@ async def home(
             "request": request,
             "is_authenticated": bool(user),
             "is_admin": bool(user and user.is_admin),
-            "user": user
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "is_admin": user.is_admin
+            } if user else None
         }
     )
 

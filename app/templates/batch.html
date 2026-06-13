@@ -495,7 +495,7 @@ WARNING MODAL
 
 
 
-
+<script src="/static/js/check_auth.js"></script>
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/slimage.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
@@ -564,6 +564,13 @@ async function detectVPN() {
 }
 
 </script>
+
+<script>
+    window.USER = JSON.parse(`{{ user | tojson | safe }}`);
+</script>
+
+
+
 
 </body>
 </html>

@@ -27,8 +27,13 @@ router = APIRouter()
 # =========================
 @router.post("/batch")
 async def compress_batch(
-    file: UploadFile = File(...)  # Zmieniono z files: list na file: UploadFile
+    request: Request, 
+    file: UploadFile = File(...), 
+    db: AsyncSession = Depends(get_db)
 ):
+
+    user = await get_current_user(request, db)
+
     q = queue_manager.compression_queue
     if q is None:
         raise HTTPException(500, "Queue not initialized")
@@ -71,12 +76,24 @@ async def compress_batch_webp(
 # STATUS
 # =========================
 @router.get("/status/{task_id}")
-async def get_status(task_id: str):
+async def get_status(
+    task_id: str,
+    request: Request, 
+    db: AsyncSession = Depends(get_db)
+    ):
+
+    user = await get_current_user(request, db)
+    if not user:
+        raise HTTPException(404, "User not found or access token has been expired")
+
     q = queue_manager.compression_queue
     task = q.get_task(task_id)
 
     if not task:
         raise HTTPException(404, "Task not found")
+    if task.status == 'done':
+        user.compression_count += 1
+        await db.commit()
 
     # Obliczamy rozmiar skompresowany dla UI
     c_size = sum(task.compressed_sizes.values()) if task.compressed_sizes else 0

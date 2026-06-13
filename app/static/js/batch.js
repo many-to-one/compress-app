@@ -135,7 +135,7 @@ document.getElementById("files").onchange = (e) => {
     console.log('Drop --- Processing dtFiles:', dtFiles);
 
     // --- LIMIT: max 20 plików ---
-    if (dtFiles.length > 20) {
+    if (dtFiles.length > 20 && !window.USER.is_admin) {
         showWarning("warning_too_many_files", `(${dtFiles.length} files)`);
         return;
     }
@@ -143,9 +143,10 @@ document.getElementById("files").onchange = (e) => {
     // --- LIMIT: max 7 MB ---
     for (const f of dtFiles) {
         console.log('Drop --- Processing file:', f);
+        console.log(window.USER.email);
         if (f.type.startsWith("image/")) {
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7) {
+            if (sizeMB > 7 && !window.USER.is_admin) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 return;
             }
@@ -258,6 +259,8 @@ async function processQueue(files) {
     }
 
     await Promise.all(workers);
+
+    checkGlobalCompletion();
 }
 
 async function worker(queue) {
@@ -301,8 +304,12 @@ async function processSingleFile(file) {
 
         const res = await fetch(endpoint, {
             method: "POST",
-            body: formData
+            body: formData,
         });
+
+        if (!checkAuth(res)) {
+            window.location.href = "/login";
+        };
 
         const data = await res.json();
 
@@ -396,7 +403,7 @@ async function checkSingleFileStatus(
                         true
                     );
 
-                    checkGlobalCompletion();
+                    // checkGlobalCompletion();
 
                     resolve();
                 }
@@ -502,6 +509,10 @@ function createActionsBtns () {
 
 
     zipBtn.onclick = async () => {
+
+        if (!checkAuth(res)) {
+            window.location.href = "/login";
+        };
 
         const ids = Object.values(finishedTasks);
 

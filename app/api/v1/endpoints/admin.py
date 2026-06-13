@@ -16,6 +16,11 @@ async def admin_users(request: Request, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User))
     users = result.scalars().all()
 
+    user = request.state.user
+
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=404)
+
     return templates.TemplateResponse(
         "admin_users.html",
         {"request": request, "users": users}

@@ -72,9 +72,10 @@ document.getElementById("files").onchange = (e) => {
         else if (f.type.startsWith("image/")) {
 
             console.log('Drop --- Processing img file:', f);
+            console.log(window.USER.is_admin);
 
             // --- LIMIT: max 20 plików ---
-            if (dtVFiles.length > 20) {
+            if (dtVFiles.length > 20 && !window.USER.is_admin) {
                 showWarning("warning_too_many_files", `(${dtVFiles.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -83,7 +84,7 @@ document.getElementById("files").onchange = (e) => {
             }
 
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7) {
+            if (sizeMB > 7 && !window.USER.is_admin) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -164,7 +165,7 @@ dropZone.addEventListener("drop", (e) => {
 
     if (e.dataTransfer.files[0].type.startsWith("image/")) {
 
-        if (e.dataTransfer.files.length > 20 ) {
+        if (e.dataTransfer.files.length > 20 && !window.USER.is_admin ) {
             showWarning("warning_too_many_files", `(${e.dataTransfer.files.length} files)`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -174,7 +175,7 @@ dropZone.addEventListener("drop", (e) => {
 
         for (const f of e.dataTransfer.files) {
             const sizeMB = f.size / 1024 / 1024;
-            if (sizeMB > 7) {
+            if (sizeMB > 7 && !window.USER.is_admin) {
                 showWarning("warning_file_too_big", `„${f.name}” > 7 MB`);
                 closeBtn.addEventListener("click", () => {
                     window.location.href = "/";
@@ -328,6 +329,10 @@ async function uploadSelectedToDrive() {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(taskIds)
         });
+
+        if (!checkAuth(res)) {
+            window.location.href = "/login";
+        };
 
         console.log("uploadSelectedToDrive", res)
 
