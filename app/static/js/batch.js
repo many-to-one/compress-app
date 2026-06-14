@@ -549,8 +549,6 @@ function createActionsBtns () {
 
     zipBtn.onclick = async () => {
 
-        checkAuth(res);
-
         const ids = Object.values(finishedTasks);
 
         const query = ids.join(",");
