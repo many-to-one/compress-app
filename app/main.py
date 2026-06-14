@@ -468,6 +468,10 @@ async def home(
         select(func.sum(User.compression_count))
     )
 
+    total_size_before = await db.scalar(
+        select(func.sum(User.size_before))
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="batch.html",
@@ -476,12 +480,14 @@ async def home(
             "is_authenticated": bool(user),
             "is_admin": bool(user and user.is_admin),
             "total_compressions": total_compressions,
+            "total_size_before": float(total_size_before or 0),
             "user": {
                 "id": user.id,
                 "email": user.email,
                 "is_admin": user.is_admin,
                  "is_premium": user.is_premium,
                 "compression_count": user.compression_count or 0,
+                "size_before": float(user.size_before or 0),
             } if user else None
         }
     )

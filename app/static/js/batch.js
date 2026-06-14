@@ -43,15 +43,27 @@ function animateCounter(element, to, duration = 1200) {
 
 document.addEventListener("DOMContentLoaded", () => {
     const el = document.getElementById("total-counter");
+    const elMB = document.getElementById("total-counter-mb");
     const userEl = document.getElementById("user-counter");
+    const userElMB = document.getElementById("user-counter-mb");
+
     if (el && window.TOTAL_COMPRESSIONS !== undefined) {
         animateCounter(el, window.TOTAL_COMPRESSIONS);
+    }
+
+    if (elMB && window.TOTAL_SIZE_BEFORE !== undefined) {
+        animateCounter(elMB, window.TOTAL_SIZE_BEFORE);
     }
 
     if (userEl && window.USER !== undefined) {
         animateCounter(userEl, window.USER.compression_count);
     }
+
+    if (userElMB && window.USER !== undefined) {
+        animateCounter(userElMB, window.USER.size_before);
+    }
 });
+
 
 
 

@@ -140,18 +140,57 @@
     </form>
 
     <div class="neon-stats">
-        {% if user and user.compression_count > 0 %}
+
+        <div class="neon-box">
+            <span class="neon-label" data-i18n="your_comp"></span>
+            <div class="file-block">
+                <div>
+                    <span id="user-counter" class="neon-number">0</span>
+                    <span data-i18n="files" class="neon-unit">x</span>
+                </div>
+                <div>
+                    <span id="user-counter-mb" class="neon-number">0</span>
+                    <span class="neon-unit">MB</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="neon-box">
+            <span class="neon-label" data-i18n="all_comp"></span>
+            <div class="file-block">
+                <div>
+                    <span id="total-counter" class="neon-number">0</span>
+                    <span data-i18n="files" class="neon-unit">x</span>
+                </div>
+                <div>
+                    <span id="total-counter-mb" class="neon-number">0</span>
+                    <span class="neon-unit">MB</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- <div class="neon-stats">
+        {% if user and user.size_before > 0 %}
             <div class="neon-box">
                 <span class="neon-label" data-i18n="your_comp"></span>
-                <span id="user-counter" class="neon-number">0</span>
+                <div>
+                    <span id="user-counter" class="neon-number">0</span>
+                    <span id="user-counter-mb" class="neon-number">0</span>
+                </div>
             </div>
         {% endif %}
 
         <div class="neon-box">
             <span class="neon-label" data-i18n="all_comp"></span>
-            <span id="total-counter" class="neon-number">0</span>
+            <div>
+                <span id="total-counter" class="neon-number">0</span>
+                <span id="total-counter-mb" class="neon-number">0</span>
+            </div>
         </div>
-    </div>
+    </div> -->
 
 
     <div id="status" class="checkbox-container">
@@ -585,6 +624,7 @@ async function detectVPN() {
 <script>
     window.USER = JSON.parse(`{{ user | tojson | safe }}`);
     window.TOTAL_COMPRESSIONS = {{ total_compressions }};
+    window.TOTAL_SIZE_BEFORE = {{ total_size_before }};
 </script>
 
 

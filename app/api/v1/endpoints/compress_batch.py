@@ -13,6 +13,7 @@ import zipfile
 import urllib
 import requests
 import json
+from decimal import Decimal
 
 from core.config import settings
 from crud.user import get_current_user
@@ -92,6 +93,8 @@ async def get_status(
     if not task:
         raise HTTPException(404, "Task not found")
     if task.status == 'done':
+        print('---------------size_before-------------', task.size_before)
+        user.size_before += Decimal(str(task.size_before))
         user.compression_count += 1
         await db.commit()
 

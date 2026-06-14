@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from db.session import Base
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Numeric
 
 class User(Base):
     __tablename__ = "users"
@@ -14,6 +15,7 @@ class User(Base):
     reset_token = Column(String, nullable=True)
 
     compression_count = Column(Integer, default=0, nullable=True)
+    size_before = Column(Numeric(10, 2), server_default="0", nullable=False)
 
     google_access_token = Column(String, nullable=True)
     google_drive_access_token = Column(String, nullable=True)

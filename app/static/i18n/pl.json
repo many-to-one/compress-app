@@ -81,7 +81,9 @@
   "warning_video_too_many_files": "Możesz przesłać tylko 3 filmy.",
   "warning_invalid_file_type": "Nieprawidłowy typ pliku.",
   "your_comp": "Ilość twoich kompresji:",
-  "all_comp": "Ilość wszystkich kompresji wynosi:"
+  "all_comp": "Ilość wszystkich kompresji wynosi:",
+  "files": "plików:",
+  "mb": "MB:"
 }
 
 

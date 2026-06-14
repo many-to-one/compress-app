@@ -200,6 +200,8 @@ class CompressionTask:
 
         self.file_progress = {}
 
+        self.size_before = None
+
         self.compressed_sizes = {}
 
         self.total_files = len(files)
@@ -233,6 +235,8 @@ class CompressionQueue:
         task = CompressionTask(files)
 
         self.tasks[task.id] = task
+        total_size = sum(len(data) for _, data in files)
+        task.size_before = total_size
 
         await self.queue.put(task)
 
@@ -327,6 +331,8 @@ class CompressionQueue:
         filename = file_data["filename"]
         data = file_data["data"]
 
+        # print('--------------file_data--------------', len(data)/ 1024 / 1024)
+
         try:
 
             compressed = await asyncio.to_thread(
@@ -342,6 +348,8 @@ class CompressionQueue:
             task.file_progress[filename] = 100
 
             task.completed_files += 1
+
+            task.size_before += len(data)/ 1024 / 1024
 
             task.progress = int(
                 (task.completed_files / task.total_files) * 100
