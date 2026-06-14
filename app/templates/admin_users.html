@@ -20,6 +20,7 @@
             <th>Aktywny</th>
             <th>Zablokowany</th>
             <th>Admin</th>
+            <th>Premium</th>
             <th>IP</th>
             <th>Zablokowane IP</th>
             <th>Akcje</th>
@@ -50,6 +51,14 @@
 
             <td>
                 {% if u.is_admin %}
+                    <span class="tag tag-no">TAK</span>
+                {% else %}
+                    <span class="tag tag-yes">NIE</span>
+                {% endif %}
+            </td>
+
+            <td>
+                {% if u.is_premium %}
                     <span class="tag tag-no">TAK</span>
                 {% else %}
                     <span class="tag tag-yes">NIE</span>
