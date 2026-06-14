@@ -330,9 +330,7 @@ async function uploadSelectedToDrive() {
             body: JSON.stringify(taskIds)
         });
 
-        if (!checkAuth(res)) {
-            window.location.href = "/login";
-        };
+        checkAuth(res);
 
         // console.log("uploadSelectedToDrive", res)
 

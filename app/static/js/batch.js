@@ -348,9 +348,7 @@ async function processSingleFile(file) {
             body: formData,
         });
 
-        if (!checkAuth(res)) {
-            window.location.href = "/login";
-        };
+        checkAuth(res);
 
         const data = await res.json();
 
@@ -551,9 +549,7 @@ function createActionsBtns () {
 
     zipBtn.onclick = async () => {
 
-        if (!checkAuth(res)) {
-            window.location.href = "/login";
-        };
+        checkAuth(res);
 
         const ids = Object.values(finishedTasks);
 
