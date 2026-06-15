@@ -446,6 +446,7 @@ async def startup_event():
     queue_manager.compression_queue = CompressionQueue()
     # Uruchomienie workera w pętli zdarzeń FastAPI
     asyncio.create_task(queue_manager.compression_queue.worker())
+    asyncio.create_task(queue_manager.compression_queue.cleanup_loop())
 
     # Kolejka wideo
     video_queue_manager.video_queue = VideoQueue()

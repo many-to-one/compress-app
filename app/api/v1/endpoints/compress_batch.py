@@ -45,6 +45,19 @@ async def compress_batch(
         "filename": file.filename,
         "data": content
     }]
+    
+    # tmp_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
+
+    # async with aiofiles.open(tmp_path, "wb") as f:
+
+    #     while chunk := await file.read(1024 * 1024):
+
+    #         await f.write(chunk)
+
+    # prepared_files = [{
+    #     "filename": file.filename,
+    #     "filepath": tmp_path
+    # }]
 
     task_id = await q.add_task(prepared_files)
     return {"task_id": task_id}
@@ -61,24 +74,24 @@ async def compress_batch_webp(
     if q is None:
         raise HTTPException(500, "Queue not initialized")
 
-    # content = await file.read()
-    # prepared_files = [{
-    #     "filename": file.filename,
-    #     "data": content
-    # }]
-
-    tmp_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
-
-    async with aiofiles.open(tmp_path, "wb") as f:
-
-        while chunk := await file.read(1024 * 1024):
-
-            await f.write(chunk)
-
+    content = await file.read()
     prepared_files = [{
         "filename": file.filename,
-        "filepath": tmp_path
+        "data": content
     }]
+
+    # tmp_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
+
+    # async with aiofiles.open(tmp_path, "wb") as f:
+
+    #     while chunk := await file.read(1024 * 1024):
+
+    #         await f.write(chunk)
+
+    # prepared_files = [{
+    #     "filename": file.filename,
+    #     "filepath": tmp_path
+    # }]
 
     # Tutaj możesz dodać mode="webp" jeśli Twoja kolejka to obsługuje
     task_id = await q.add_task(prepared_files) 

@@ -80,18 +80,18 @@ class CompressionQueue:
         task = CompressionTask(files)
 
         self.tasks[task.id] = task
-        # total_size = sum(len(data) for _, data in files)
-        # task.size_before = total_size
+        total_size = sum(len(data) for _, data in files)
+        task.size_before = total_size
 
-        total_size = 0
+        # total_size = 0
 
-        for f in files:
+        # for f in files:
 
-            total_size += os.path.getsize(
-                f["filepath"]
-            )
+        #     total_size += os.path.getsize(
+        #         f["filepath"]
+        #     )
 
-        task.size_before = total_size / 1024 / 1024
+        # task.size_before = total_size / 1024 / 1024
 
         await self.queue.put(task)
 
@@ -139,9 +139,6 @@ class CompressionQueue:
                 finally:
 
                     self.queue.task_done()
-                    asyncio.create_task(
-                        self.cleanup_loop()
-                    )
 
         while True:
 
@@ -157,8 +154,8 @@ class CompressionQueue:
 
         cpu_count = psutil.cpu_count() or 4
         # file_semaphore = asyncio.Semaphore(8)
-        file_semaphore = asyncio.Semaphore(1)
-        # file_semaphore = asyncio.Semaphore(max(2, cpu_count - 1))
+        # file_semaphore = asyncio.Semaphore(1)
+        file_semaphore = asyncio.Semaphore(max(2, cpu_count - 1))
 
         async def process(file_data):
 
@@ -169,17 +166,17 @@ class CompressionQueue:
                     file_data
                 )
 
-        # jobs = [
-        #     process(file_data)
-        #     for file_data in task.files
-        # ]
+        jobs = [
+            process(file_data)
+            for file_data in task.files
+        ]
 
-        # await asyncio.gather(
-        #     *jobs,
-        #     return_exceptions=True
-        # )
-        for file_data in task.files:
-            await process(file_data)
+        await asyncio.gather(
+            *jobs,
+            return_exceptions=True
+        )
+        # for file_data in task.files:
+        #     await process(file_data)
 
     # =====================
     # SINGLE FILE
@@ -192,27 +189,27 @@ class CompressionQueue:
     ):
 
         filename = file_data["filename"]
-        # data = file_data["data"]
-        filepath = file_data["filepath"]
+        data = file_data["data"]
+        # filepath = file_data["filepath"]
 
         # print('--------------file_data--------------', len(data)/ 1024 / 1024)
 
         try:
-
-            # compressed = await asyncio.to_thread(
-            #     auto_compress,
-            #     data,
-            #     filename
-            # )
-
-            with open(filepath, "rb") as f:
-                data = f.read()
 
             compressed = await asyncio.to_thread(
                 auto_compress,
                 data,
                 filename
             )
+
+            # with open(filepath, "rb") as f:
+            #     data = f.read()
+
+            # compressed = await asyncio.to_thread(
+            #     auto_compress,
+            #     data,
+            #     filename
+            # )
 
             task.results[filename] = compressed
 
@@ -236,14 +233,14 @@ class CompressionQueue:
                 f"Compression error {filename}: {e}"
             )
 
-        finally:
+        # finally:
 
-            if os.path.exists(filepath):
+        #     if os.path.exists(filepath):
 
-                try:
-                    os.remove(filepath)
-                except:
-                    pass
+        #         try:
+        #             os.remove(filepath)
+        #         except:
+        #             pass
 
 
 
@@ -251,6 +248,8 @@ class CompressionQueue:
     async def cleanup_loop(self):
 
         while True:
+
+            print('============================cleanup_loop==========================')
 
             now = time.time()
 
