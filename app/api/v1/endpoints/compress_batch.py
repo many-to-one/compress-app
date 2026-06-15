@@ -95,7 +95,7 @@ async def get_status(
     if task.status == 'done':
         print('---------------size_before-------------', task.size_before)
         user.size_before += Decimal(str(task.size_before))
-        user.compression_count += 1
+        user.compression_count = (user.compression_count or 0) + 1
         await db.commit()
 
     # Obliczamy rozmiar skompresowany dla UI

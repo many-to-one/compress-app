@@ -316,6 +316,7 @@ async def google_drive_auth(
         "access_type": "offline",
         "prompt": "consent"
     }
+    print("-------------- google-drive - test---------------")
     url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
     return RedirectResponse(url)
 

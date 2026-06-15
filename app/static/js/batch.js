@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function checkDriveStatus() {
     const res = await fetch("/auth/google-drive/status");
     const data = await res.json();
-    // console.log('checkDriveStatus---', res)
+    console.log('checkDriveStatus---', res)
     isDriveConnected = data.connected;
     await updateDriveButton();
 }
@@ -83,17 +83,18 @@ async function checkDriveStatus() {
 async function updateDriveButton() {
     const btn = document.getElementById("googleDriveBtn");
     // const text = document.getElementById("driveBtnText");
+
+    // console.log('isDriveConnected---', isDriveConnected)
     
-    if (isDriveConnected) {
-        // text.innerText = "Upload selected to Drive";
-        // actions.classList.remove("hidden");
-        btn.classList.add("hidden");
-        // btn.onclick = uploadSelectedToDrive;
-    } else {
-        // text.innerText = "Connect Google Drive";
-        // actions.classList.remove("hidden");
+    if (!isDriveConnected) {
+        console.log('!isDriveConnected---', isDriveConnected)
         btn.classList.remove("hidden");
         btn.onclick = () => window.location.href = "/auth/google-drive";
+        return
+    } else {
+        console.log('isDriveConnected---', isDriveConnected)
+        btn.classList.add("hidden");
+        
     }
 }
 

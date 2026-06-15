@@ -15,7 +15,12 @@ SELECT * FROM alembic_version;
  242d63a77966
 # than:
 DELETE FROM alembic_version;
+
+- tak:
 alembic revision --autogenerate -m "init"
+alembic upgrade head
+- albo tak (żeby zachować migracje alembic)
+alembic stamp head
 alembic upgrade head
 
 
