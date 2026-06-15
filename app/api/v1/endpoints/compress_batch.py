@@ -61,10 +61,23 @@ async def compress_batch_webp(
     if q is None:
         raise HTTPException(500, "Queue not initialized")
 
-    content = await file.read()
+    # content = await file.read()
+    # prepared_files = [{
+    #     "filename": file.filename,
+    #     "data": content
+    # }]
+
+    tmp_path = f"/tmp/{uuid.uuid4()}_{file.filename}"
+
+    async with aiofiles.open(tmp_path, "wb") as f:
+
+        while chunk := await file.read(1024 * 1024):
+
+            await f.write(chunk)
+
     prepared_files = [{
         "filename": file.filename,
-        "data": content
+        "filepath": tmp_path
     }]
 
     # Tutaj możesz dodać mode="webp" jeśli Twoja kolejka to obsługuje

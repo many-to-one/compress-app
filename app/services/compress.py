@@ -210,7 +210,7 @@ from io import BytesIO
 
 def compress_png(input_bytes: bytes) -> bytes:
     # pngquant jest bardzo szybki, ale przy dużych plikach warto użyć --speed 4-5
-    cmd = ["pngquant", "--quality", "65-80", "--speed", "4", "-"]
+    cmd = ["pngquant", "--quality", "65-80", "--speed", "7", "-"]
     try:
         process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE

@@ -7,6 +7,9 @@ from typing import Dict
 
 from services.compress import auto_compress
 
+import psutil
+import time
+
 
 # =========================
 # STATUS
@@ -46,6 +49,8 @@ class CompressionTask:
         self.total_files = len(files)
         self.completed_files = 0
 
+        self.finished_at = None
+
         for file_data in files:
             self.file_progress[file_data["filename"]] = 0
 
@@ -63,7 +68,7 @@ class CompressionQueue:
         self.tasks: Dict[str, CompressionTask] = {}
 
         # ilu użytkowników jednocześnie
-        self.user_semaphore = asyncio.Semaphore(5)
+        self.user_semaphore = asyncio.Semaphore(2) #(5)
 
     # =====================
     # ADD TASK
@@ -74,8 +79,18 @@ class CompressionQueue:
         task = CompressionTask(files)
 
         self.tasks[task.id] = task
-        total_size = sum(len(data) for _, data in files)
-        task.size_before = total_size
+        # total_size = sum(len(data) for _, data in files)
+        # task.size_before = total_size
+
+        total_size = 0
+
+        for f in files:
+
+            total_size += os.path.getsize(
+                f["filepath"]
+            )
+
+        task.size_before = total_size / 1024 / 1024
 
         await self.queue.put(task)
 
@@ -123,6 +138,9 @@ class CompressionQueue:
                 finally:
 
                     self.queue.task_done()
+                    asyncio.create_task(
+                        self.cleanup_loop()
+                    )
 
         while True:
 
@@ -136,7 +154,10 @@ class CompressionQueue:
 
     async def process_batch(self, task):
 
-        file_semaphore = asyncio.Semaphore(8)
+        cpu_count = psutil.cpu_count() or 4
+        # file_semaphore = asyncio.Semaphore(8)
+        file_semaphore = asyncio.Semaphore(1)
+        # file_semaphore = asyncio.Semaphore(max(2, cpu_count - 1))
 
         async def process(file_data):
 
@@ -147,15 +168,17 @@ class CompressionQueue:
                     file_data
                 )
 
-        jobs = [
-            process(file_data)
-            for file_data in task.files
-        ]
+        # jobs = [
+        #     process(file_data)
+        #     for file_data in task.files
+        # ]
 
-        await asyncio.gather(
-            *jobs,
-            return_exceptions=True
-        )
+        # await asyncio.gather(
+        #     *jobs,
+        #     return_exceptions=True
+        # )
+        for file_data in task.files:
+            await process(file_data)
 
     # =====================
     # SINGLE FILE
@@ -168,11 +191,21 @@ class CompressionQueue:
     ):
 
         filename = file_data["filename"]
-        data = file_data["data"]
+        # data = file_data["data"]
+        filepath = file_data["filepath"]
 
         # print('--------------file_data--------------', len(data)/ 1024 / 1024)
 
         try:
+
+            # compressed = await asyncio.to_thread(
+            #     auto_compress,
+            #     data,
+            #     filename
+            # )
+
+            with open(filepath, "rb") as f:
+                data = f.read()
 
             compressed = await asyncio.to_thread(
                 auto_compress,
@@ -188,17 +221,55 @@ class CompressionQueue:
 
             task.completed_files += 1
 
-            task.size_before += len(data)/ 1024 / 1024
+            # task.size_before += len(data)/ 1024 / 1024
 
             task.progress = int(
                 (task.completed_files / task.total_files) * 100
             )
+
+            task.finished_at = time.time()
 
         except Exception as e:
 
             print(
                 f"Compression error {filename}: {e}"
             )
+
+        finally:
+
+            if os.path.exists(filepath):
+
+                try:
+                    os.remove(filepath)
+                except:
+                    pass
+
+
+
+
+    async def cleanup_loop(self):
+
+        while True:
+
+            now = time.time()
+
+            remove_ids = []
+
+            for task_id, task in self.tasks.items():
+
+                if (
+                    task.status in (
+                        TaskStatus.DONE,
+                        TaskStatus.ERROR
+                    )
+                    and now - task.finished_at > 3600
+                ):
+                    remove_ids.append(task_id)
+
+            for task_id in remove_ids:
+                self.tasks.pop(task_id, None)
+
+            await asyncio.sleep(300)
 
     # =====================
     # ZIP

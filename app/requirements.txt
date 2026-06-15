@@ -25,3 +25,4 @@ aioredis
 gunicorn
 requests
 aiofiles
+psutil
